@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StudyAdmin - Self Coaching Hub
 
-## Getting Started
+StudyAdminは、自身を生徒とコーチの2つの視点から管理・育成するための、モバイルファーストな「セルフコーチング・ハブ」アプリケーションです。Next.js と Notion API を連携し、思考の整理と日々のタスク実行を強力にサポートします。
 
-First, run the development server:
+## ✨ 主な機能
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. **生徒モード（Desk）**
+   *   直感的なスワイプ操作（Framer Motion）によるタスク完了
+   *   「未着手」「完了」のタブ切り替えと「実行中」のフォーカスUI
+2. **先生モード（Coach Desk）**
+   *   パスワード保護（デフォルト `555`）によるモード切り替え
+   *   大目標（プロジェクト）の管理とタスクへの細分化（未アサイン・プール機能）
+   *   生徒へのタスク・アサイン（宿題機能）
+3. **コーチング・ループと壁打ち（Log）**
+   *   「KPT法」「失敗分析」などの穴埋め式フレームワークを備えた思考の書き出し
+   *   Notionデータベースへの自動Markdownフォーマット保存
+   *   先生モードで昨日のログを確認し、次の宿題へ繋げるコーチング・ループ
+4. **PWA対応とプレミアムUI**
+   *   ダークモード基調のグラスモーフィズムデザイン
+   *   ユーザーアクションに対するグローバル・トースト通知
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠 技術スタック
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+*   **Framework**: Next.js (App Router)
+*   **Styling**: Vanilla CSS (CSS Modules)
+*   **Animation**: Framer Motion
+*   **Icons**: Lucide React
+*   **Backend / DB**: Notion API (`@notionhq/client`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 セットアップ手順
 
-## Learn More
+1. **リポジトリのクローンとインストール**
+   ```bash
+   git clone https://github.com/LeeR6174/StudyAdmin.git
+   cd StudyAdmin
+   npm install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **環境変数の設定**
+   ルートディレクトリにある `.env.local.example` をコピーして `.env.local` を作成し、Notion APIのキーとデータベースIDを設定してください。
+   ```env
+   NOTION_API_KEY=ntn_your_secret_token_here
+   NOTION_TASKS_DB_ID=your_tasks_database_id_here
+   NOTION_LOGS_DB_ID=your_logs_database_id_here
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Notionデータベースの準備**
+   *   **Tasks DB**: `Name` (タイトル), `Status` (セレクト: `未アサイン`, `未着手`, `完了`), `Project` (テキスト)
+   *   **Logs DB**: `Name` (タイトル), `Type` (セレクト: `壁打ち`, `コーチメモ`), `Date` (日付)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. **開発サーバーの起動**
+   ```bash
+   npm run dev
+   ```
+   ブラウザで [http://localhost:3000](http://localhost:3000) を開いて確認できます。
 
-## Deploy on Vercel
+## 📱 PWAとしての利用
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+スマホのブラウザでアクセスし、「ホーム画面に追加」を選択することで、ネイティブアプリのようにフルスクリーンで快適に利用できます。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*Developed for personal growth and self-management.*
