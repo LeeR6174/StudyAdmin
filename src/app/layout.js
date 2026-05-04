@@ -9,13 +9,19 @@ export const metadata = {
   title: "StudyAdmin",
   description: "セルフコーチング・ハブ",
   manifest: "/manifest.json",
-  themeColor: "#0f1115",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "StudyAdmin",
   },
+};
+
+export const viewport = {
+  themeColor: "#0f1115",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({ children }) {
