@@ -21,17 +21,33 @@ export default function InboxPage() {
     if (!dateStr) return "";
     try {
       const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
       const month = d.getMonth() + 1;
       const date = d.getDate();
       const hours = d.getHours().toString().padStart(2, "0");
       const minutes = d.getMinutes().toString().padStart(2, "0");
       
       // If it's a date only (time is 00:00 and not specified), or just to be safe
-      // datetime-local usually includes T
       if (dateStr.includes("T")) {
         return `${month}/${date} ${hours}:${minutes}`;
       }
       return `${month}/${date}`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  const formatForShortcut = (dateStr) => {
+    if (!dateStr) return "";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const yyyy = d.getFullYear();
+      const mm = (d.getMonth() + 1).toString().padStart(2, "0");
+      const dd = d.getDate().toString().padStart(2, "0");
+      const hh = d.getHours().toString().padStart(2, "0");
+      const min = d.getMinutes().toString().padStart(2, "0");
+      return `${yyyy}/${mm}/${dd} ${hh}:${min}`;
     } catch (e) {
       return dateStr;
     }
@@ -110,7 +126,8 @@ export default function InboxPage() {
       showToast("期限が設定されていないため、時間指定でリマインダーに送れません。");
       return;
     }
-    const url = `shortcuts://x-callback-url/run-shortcut?name=StudyAdminReminder&input=text&text=${encodeURIComponent(item.name + "||" + item.deadline)}`;
+    const formattedDate = formatForShortcut(item.deadline);
+    const url = `shortcuts://x-callback-url/run-shortcut?name=StudyAdminReminder&input=text&text=${encodeURIComponent(item.name + "||" + formattedDate)}`;
     window.location.href = url;
   };
 
@@ -134,7 +151,17 @@ export default function InboxPage() {
     }
 
     try {
-      const payload = { name, memo, deadline, location };
+      // Convert to full ISO string for Notion API if it's a datetime
+      let formattedDeadline = deadline;
+      if (deadline && deadline.includes("T")) {
+        try {
+          formattedDeadline = new Date(deadline).toISOString();
+        } catch (e) {
+          console.error("Date conversion failed", e);
+        }
+      }
+
+      const payload = { name, memo, deadline: formattedDeadline, location };
       const res = await fetch("/api/inbox", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
