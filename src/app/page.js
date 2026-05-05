@@ -73,11 +73,18 @@ export default function DeskPage() {
     }
   };
 
-  const addBigGoal = (e) => {
+  const addBigGoal = async (e) => {
     e.preventDefault();
     if (!newGoalTitle.trim()) return;
     if (!bigGoals.includes(newGoalTitle)) {
       setBigGoals([...bigGoals, newGoalTitle]);
+      try {
+        await fetch("/api/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: `【大目標】${newGoalTitle}`, project: newGoalTitle, status: "未アサイン" })
+        });
+      } catch (err) {}
     }
     setSelectedGoalTitle(newGoalTitle);
     setNewGoalTitle("");
@@ -146,9 +153,9 @@ export default function DeskPage() {
     }
   };
 
-  const backlogTasks = tasks.filter(t => t.status === "backlog" && t.project === selectedGoalTitle);
-  const todoTasks = tasks.filter(t => t.status === "todo");
-  const doneTasks = tasks.filter(t => t.status === "done");
+  const backlogTasks = tasks.filter(t => t.status === "backlog" && t.project === selectedGoalTitle && !t.title.startsWith("【大目標】"));
+  const todoTasks = tasks.filter(t => t.status === "todo" && !t.title.startsWith("【大目標】"));
+  const doneTasks = tasks.filter(t => t.status === "done" && !t.title.startsWith("【大目標】"));
 
   return (
     <div className={`${styles.container} ${isTeacherMode ? styles.teacherModeTheme : ""}`}>
@@ -174,7 +181,7 @@ export default function DeskPage() {
                 <button onClick={() => setShowPasswordDialog(false)}><X size={20} /></button>
               </div>
               <form onSubmit={handleToggleMode}>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="パスワードを入力 (555)" className={styles.input} autoFocus />
+                <input type="password" inputMode="numeric" pattern="[0-9]*" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="パスワードを入力 (555)" className={styles.input} autoFocus />
                 {errorMsg && <p className={styles.error}>{errorMsg}</p>}
                 <button type="submit" className={styles.primaryBtn}>ロック解除</button>
               </form>
@@ -206,9 +213,9 @@ export default function DeskPage() {
               )}
             </section>
 
-            {/* Step 2: Big Goals */}
+            {/* Step 2: Big Goals & Decompose */}
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}><Target size={18} /> Step 2: 大目標の管理</h2>
+              <h2 className={styles.sectionTitle}><Target size={18} /> Step 2: 大目標の管理とタスク細分化</h2>
               <div className={styles.goalList}>
                 {bigGoals.map(goal => (
                   <div key={goal} className={`${styles.goalItem} ${selectedGoalTitle === goal ? styles.selectedGoal : ""}`} onClick={() => setSelectedGoalTitle(goal)}>
@@ -220,16 +227,13 @@ export default function DeskPage() {
                 <input type="text" value={newGoalTitle} onChange={(e) => setNewGoalTitle(e.target.value)} placeholder="新しい大目標を追加..." className={styles.input} />
                 <button type="submit" className={styles.iconSubmitBtn}><Plus size={20} /></button>
               </form>
-            </section>
 
-            {/* Step 3: Decompose Tasks & Assign */}
-            <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>
-                <CheckCircle2 size={18} /> 
-                Step 3: タスク細分化と宿題アサイン
-              </h2>
-              {selectedGoalTitle ? (
-                <>
+              {selectedGoalTitle && (
+                <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--border-color)' }}>
+                  <h3 style={{ fontSize: '1rem', marginBottom: '16px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CheckCircle2 size={16} color="#c084fc" /> 
+                    『{selectedGoalTitle}』のタスク
+                  </h3>
                   <form onSubmit={addTaskToBacklog} className={styles.addForm}>
                     <input type="text" value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} placeholder={`${selectedGoalTitle} を分解...`} className={styles.input} />
                     <button type="submit" className={styles.iconSubmitBtn}><Plus size={20} /></button>
@@ -263,9 +267,7 @@ export default function DeskPage() {
                       </div>
                     </div>
                   </div>
-                </>
-              ) : (
-                <p className={styles.emptyText}>先に大目標を選択してください。</p>
+                </div>
               )}
             </section>
           </motion.div>

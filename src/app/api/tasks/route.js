@@ -11,7 +11,7 @@ export async function GET() {
   try {
     const response = await notion.databases.query({
       database_id: databaseId,
-      sorts: [{ timestamp: "created_time", direction: "ascending" }],
+      sorts: [{ timestamp: "created_time", direction: "descending" }],
     });
 
     const tasks = response.results.map((page) => {
@@ -29,7 +29,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json(tasks);
+    return NextResponse.json(tasks.reverse());
   } catch (error) {
     console.error("Error fetching tasks:", error);
     return NextResponse.json({ error: "Failed to fetch tasks" }, { status: 500 });
