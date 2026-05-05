@@ -1,11 +1,62 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import styles from "../page.module.css";
-import { Settings, Database } from "lucide-react";
+import { Settings, Database, Clock } from "lucide-react";
 import { useAppContext } from "@/context/AppProvider";
 
 export default function FeedbackPage() {
-  const { isTestMode, toggleTestMode } = useAppContext();
+  const { isTestMode, toggleTestMode, showToast } = useAppContext();
+  const [canSubmit, setCanSubmit] = useState(true);
+  const [timeLeftStr, setTimeLeftStr] = useState("");
+
+  useEffect(() => {
+    checkRateLimit();
+    const interval = setInterval(checkRateLimit, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, []);
+
+  const checkRateLimit = () => {
+    try {
+      const stored = localStorage.getItem("studyAdmin_feedbacks");
+      if (stored) {
+        const timestamps = JSON.parse(stored);
+        const ONE_HOUR = 60 * 60 * 1000;
+        const now = Date.now();
+        const recent = timestamps.filter(t => now - t < ONE_HOUR);
+        
+        if (recent.length !== timestamps.length) {
+          localStorage.setItem("studyAdmin_feedbacks", JSON.stringify(recent));
+        }
+
+        if (recent.length >= 3) {
+          setCanSubmit(false);
+          const oldest = Math.min(...recent);
+          const unlockTime = oldest + ONE_HOUR;
+          const waitMins = Math.ceil((unlockTime - now) / 60000);
+          setTimeLeftStr(`約${waitMins}分`);
+        } else {
+          setCanSubmit(true);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleFormSubmit = (e) => {
+    if (!canSubmit) {
+      e.preventDefault();
+      showToast("連続送信の制限中です");
+      return;
+    }
+    
+    // Log submission
+    const stored = localStorage.getItem("studyAdmin_feedbacks");
+    const timestamps = stored ? JSON.parse(stored) : [];
+    timestamps.push(Date.now());
+    localStorage.setItem("studyAdmin_feedbacks", JSON.stringify(timestamps));
+  };
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -48,29 +99,41 @@ export default function FeedbackPage() {
 
         <div className={styles.section}>
           {/* Netlify Form standard structure */}
-          <form name="contact" method="POST" data-netlify="true" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form name="contact" method="POST" data-netlify="true" onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <input type="hidden" name="form-name" value="contact" />
             <p style={{ margin: 0 }}>
               <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '8px', fontSize: '0.9rem' }}>
                 Name
-                <input type="text" name="name" className={styles.input} style={{ marginTop: '4px' }} required />
+                <input type="text" name="name" className={styles.input} style={{ marginTop: '4px' }} required disabled={!canSubmit} />
               </label>
             </p>
             <p style={{ margin: 0 }}>
               <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '8px', fontSize: '0.9rem' }}>
                 Email
-                <input type="email" name="email" className={styles.input} style={{ marginTop: '4px' }} required />
+                <input type="email" name="email" className={styles.input} style={{ marginTop: '4px' }} required disabled={!canSubmit} />
               </label>
             </p>
             <p style={{ margin: 0 }}>
               <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '8px', fontSize: '0.9rem' }}>
                 Message
-                <textarea name="message" className={styles.input} style={{ marginTop: '4px', minHeight: '150px', resize: 'vertical' }} required />
+                <textarea name="message" className={styles.input} style={{ marginTop: '4px', minHeight: '150px', resize: 'vertical' }} required disabled={!canSubmit} />
               </label>
             </p>
             <p style={{ margin: 0 }}>
-              <button type="submit" className={styles.primaryBtn}>Send</button>
+              <button 
+                type="submit" 
+                className={styles.primaryBtn} 
+                disabled={!canSubmit}
+                style={{ opacity: canSubmit ? 1 : 0.5, cursor: canSubmit ? 'pointer' : 'not-allowed' }}
+              >
+                {canSubmit ? "Send" : `送信制限中 (${timeLeftStr}後に解除)`}
+              </button>
             </p>
+            {!canSubmit && (
+              <p style={{ fontSize: '0.8rem', color: 'var(--accent-danger)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '-8px' }}>
+                <Clock size={14} /> 短時間での連続送信を制限しています。
+              </p>
+            )}
           </form>
         </div>
       </div>

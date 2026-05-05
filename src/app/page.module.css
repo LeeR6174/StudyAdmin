@@ -7,10 +7,10 @@
 }
 
 .teacherModeTheme {
-  background-color: #121016;
+  background-color: #17151a;
 }
 .teacherModeTheme .header .title {
-  color: #c084fc;
+  color: #bf5af2;
 }
 
 .header {
@@ -46,7 +46,7 @@
 }
 
 .teacherIcon {
-  color: #c084fc;
+  color: #bf5af2;
 }
 
 /* Dialog */
@@ -71,17 +71,18 @@
 /* TEACHER MODE */
 .teacherContainer { display: flex; flex-direction: column; gap: 24px; }
 .section { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; }
-.highlightSection { border-color: rgba(192, 132, 252, 0.4); background: rgba(192, 132, 252, 0.05); }
-.sectionTitle { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; color: #e9d5ff; }
+.highlightSection { border-color: rgba(191, 90, 242, 0.4); background: rgba(191, 90, 242, 0.05); }
+.sectionTitle { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; color: #f2f2f7; }
 
 .recentLogCard { background: rgba(0,0,0,0.3); border-radius: var(--radius-md); padding: 16px; }
-.logDate { font-size: 0.8rem; color: #c084fc; margin-bottom: 8px; font-weight: 600; }
+.logDate { font-size: 0.8rem; color: #bf5af2; margin-bottom: 8px; font-weight: 600; }
 .logContent { font-family: inherit; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; color: var(--text-main); }
 .emptyText { font-size: 0.85rem; color: var(--text-muted); }
 
-.goalList { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 12px; }
-.goalItem { white-space: nowrap; padding: 8px 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: var(--radius-full); font-size: 0.9rem; cursor: pointer; }
-.selectedGoal { background: rgba(192, 132, 252, 0.2); border-color: #c084fc; color: #f3e8ff; }
+.goalList { display: flex; flex-direction: column; gap: 10px; padding-bottom: 12px; margin-bottom: 12px; }
+.goalItem { padding: 14px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-lg); font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: var(--transition-fast); }
+.goalItem:hover { background: rgba(255, 255, 255, 0.05); }
+.selectedGoal { background: rgba(191, 90, 242, 0.15); border-color: #bf5af2; color: #f2f2f7; }
 
 .addForm { display: flex; gap: 8px; }
 .addForm .input { margin-bottom: 0; }
@@ -96,8 +97,8 @@
 .teacherTaskCard { background: rgba(0, 0, 0, 0.2); padding: 12px 16px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
 .assignedCard { border-left: 3px solid #10b981; }
 
-.promoteBtn { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; background: rgba(192, 132, 252, 0.15); color: #c084fc; padding: 4px 10px; border-radius: var(--radius-full); font-weight: 600; transition: var(--transition-fast); }
-.promoteBtn:hover { background: rgba(192, 132, 252, 0.3); }
+.promoteBtn { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; background: rgba(191, 90, 242, 0.15); color: #bf5af2; padding: 4px 10px; border-radius: var(--radius-full); font-weight: 600; transition: var(--transition-fast); }
+.promoteBtn:hover { background: rgba(191, 90, 242, 0.3); }
 
 /* STUDENT MODE */
 .tabs { display: flex; background: rgba(0, 0, 0, 0.2); padding: 4px; border-radius: var(--radius-full); margin-bottom: 24px; }
@@ -108,18 +109,19 @@
 
 .taskList { display: flex; flex-direction: column; gap: 16px; }
 
-/* Swipeable Task */
-.swipeWrapper { position: relative; width: 100%; border-radius: var(--radius-lg); overflow: hidden; }
-.swipeBackground { position: absolute; inset: 0; background: var(--accent-success); display: flex; align-items: center; padding: 0 24px; color: white; font-weight: 600; gap: 8px; }
-.studentTaskCard { position: relative; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; z-index: 10; cursor: grab; }
-.executingCard { background: rgba(99, 102, 241, 0.1); border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(99, 102, 241, 0.3); }
+/* New Task Checkbox Style */
+.studentTaskCard { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 18px 20px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 16px; z-index: 10; cursor: pointer; transition: var(--transition-fast); }
+.studentTaskCard:hover { background: var(--bg-surface-hover); }
+.checkboxBtn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--text-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: var(--transition-fast); background: transparent; color: transparent; }
+.studentTaskCard:hover .checkboxBtn { border-color: var(--accent-primary); }
+.executingCard { background: rgba(191, 90, 242, 0.08); border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(191, 90, 242, 0.2); }
 
 .taskGoalText { font-size: 0.75rem; color: var(--accent-primary); margin-bottom: 6px; font-weight: 600; }
 .taskTitle { font-size: 1.05rem; font-weight: 500; line-height: 1.4; }
 
-.executingBadge { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--accent-primary); font-weight: 600; background: rgba(99, 102, 241, 0.15); padding: 4px 10px; border-radius: var(--radius-full); }
+.executingBadge { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--accent-primary); font-weight: 600; background: rgba(191, 90, 242, 0.15); padding: 4px 10px; border-radius: var(--radius-full); margin-left: auto; }
 .pulseDot { width: 8px; height: 8px; background: var(--accent-primary); border-radius: 50%; animation: pulse 1.5s infinite; }
-@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(99,102,241,0.7); } 70% { box-shadow: 0 0 0 6px rgba(99,102,241,0); } 100% { box-shadow: 0 0 0 0 transparent; } }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(191,90,242,0.7); } 70% { box-shadow: 0 0 0 6px rgba(191,90,242,0); } 100% { box-shadow: 0 0 0 0 transparent; } }
 
 .doneTaskCard { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; opacity: 0.7; }
 .taskTitleStriked { font-size: 1rem; text-decoration: line-through; color: var(--text-muted); margin-bottom: 4px; }

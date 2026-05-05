@@ -8,10 +8,7 @@ import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import Link from "next/link";
 
 export default function DeskPage() {
-  const { isTeacherMode, toggleTeacherMode, showToast, isTestMode } = useAppContext();
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
+  const { isTeacherMode, showToast, isTestMode } = useAppContext();
   const [activeTab, setActiveTab] = useState("todo"); 
 
   const [isLoading, setIsLoading] = useState(true);
@@ -27,13 +24,18 @@ export default function DeskPage() {
     async function fetchData() {
       if (isTestMode) {
         setTasks([
-          { id: "test1", title: "数学 ページ20", project: "テスト対策", status: "todo", isExecuting: false },
-          { id: "test2", title: "英単語 100個", project: "テスト対策", status: "backlog", isExecuting: false },
-          { id: "test3", title: "国語 ワーク", project: "日々の宿題", status: "done", isExecuting: false },
+          { id: "test1", title: "数学 ページ20〜25", project: "期末テスト対策", status: "todo", isExecuting: false },
+          { id: "test2", title: "英単語 100個暗記", project: "期末テスト対策", status: "todo", isExecuting: false },
+          { id: "test3", title: "理科 過去問1年分", project: "期末テスト対策", status: "backlog", isExecuting: false },
+          { id: "test4", title: "社会 歴史まとめノート", project: "期末テスト対策", status: "backlog", isExecuting: false },
+          { id: "test5", title: "国語 漢字プリント", project: "日々の宿題", status: "done", isExecuting: false },
+          { id: "test6", title: "英語 リスニング10分", project: "日々の宿題", status: "todo", isExecuting: false },
+          { id: "test7", title: "プログラミング Reactの復習", project: "自己啓発", status: "backlog", isExecuting: false },
+          { id: "test8", title: "ランニング 3km", project: "自己啓発", status: "done", isExecuting: false },
         ]);
-        setBigGoals(["テスト対策", "日々の宿題"]);
-        setSelectedGoalTitle("テスト対策");
-        setRecentLog({ date: new Date().toISOString(), type: "壁打ち", content: "テスト勉強頑張るぞ！" });
+        setBigGoals(["期末テスト対策", "日々の宿題", "自己啓発"]);
+        setSelectedGoalTitle("期末テスト対策");
+        setRecentLog({ date: new Date().toISOString(), type: "壁打ち", content: "テストまであと1週間。集中して頑張る！スマホは別の部屋に置くようにする。" });
         setIsLoading(false);
         return;
       }
@@ -70,22 +72,6 @@ export default function DeskPage() {
     }
     fetchData();
   }, []);
-
-  // --- Teacher Actions ---
-  const handleToggleMode = (e) => {
-    e.preventDefault();
-    if (isTeacherMode) {
-      toggleTeacherMode();
-    } else {
-      if (toggleTeacherMode(password)) {
-        setShowPasswordDialog(false);
-        setPassword("");
-        setErrorMsg("");
-      } else {
-        setErrorMsg("パスワードが違います");
-      }
-    }
-  };
 
   const addBigGoal = async (e) => {
     e.preventDefault();
@@ -138,7 +124,7 @@ export default function DeskPage() {
   };
 
   const promoteToTodo = async (taskId) => {
-    setTasks(tasks.map(t => t.id === taskId ? { ...t, status: "todo" } : t));
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "todo" } : t));
     showToast("宿題にアサインしました");
     if (isTestMode) return;
     await fetch("/api/tasks", {
@@ -148,16 +134,27 @@ export default function DeskPage() {
     });
   };
 
+  const revertToBacklog = async (taskId) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "backlog" } : t));
+    showToast("アサインを取り消しました");
+    if (isTestMode) return;
+    await fetch("/api/tasks", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: taskId, status: "backlog" })
+    });
+  };
+
   // --- Student Actions ---
   const toggleExecuting = (taskId) => {
     if (isTeacherMode) return;
-    setTasks(tasks.map(t => 
+    setTasks(prev => prev.map(t => 
       t.id === taskId ? { ...t, isExecuting: !t.isExecuting } : { ...t, isExecuting: false }
     ));
   };
 
   const updateTaskStatus = async (taskId, newStatus) => {
-    setTasks(tasks.map(t => 
+    setTasks(prev => prev.map(t => 
       t.id === taskId ? { ...t, status: newStatus, isExecuting: false } : t
     ));
     if (newStatus === "done") {
@@ -186,36 +183,9 @@ export default function DeskPage() {
           <h1 className={styles.title}>{isTeacherMode ? "コーチデスク" : "今日の宿題"}</h1>
           <p className={styles.subtitle}>{isTeacherMode ? "コーチング・ループの実践" : "一つずつ確実に終わらせよう"}</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <Link href="/feedback" className={styles.iconBtn}>
-            <Settings size={24} />
-          </Link>
-          <button 
-            className={styles.iconBtn} 
-            onClick={() => isTeacherMode ? toggleTeacherMode() : setShowPasswordDialog(true)}
-          >
-            {isTeacherMode ? <UserCog size={24} className={styles.teacherIcon} /> : <Lock size={24} />}
-          </button>
-        </div>
       </header>
 
-      <AnimatePresence>
-        {showPasswordDialog && (
-          <motion.div className={styles.dialogOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div className={styles.dialogCard} initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}>
-              <div className={styles.dialogHeader}>
-                <h3>先生モードへ切り替え</h3>
-                <button onClick={() => setShowPasswordDialog(false)}><X size={20} /></button>
-              </div>
-              <form onSubmit={handleToggleMode}>
-                <input type="password" inputMode="numeric" pattern="[0-9]*" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="パスワードを入力 (555)" className={styles.input} autoFocus />
-                {errorMsg && <p className={styles.error}>{errorMsg}</p>}
-                <button type="submit" className={styles.primaryBtn}>ロック解除</button>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       <div className={`${styles.content} no-scrollbar`}>
         {isLoading ? (
@@ -288,7 +258,9 @@ export default function DeskPage() {
                         {todoTasks.filter(t => t.project === selectedGoalTitle).map(task => (
                           <div key={task.id} className={`${styles.teacherTaskCard} ${styles.assignedCard}`}>
                             <span>{task.title}</span>
-                            <span className={styles.statusBadge}>未着手</span>
+                            <button onClick={() => revertToBacklog(task.id)} className={styles.promoteBtn} style={{ color: 'var(--accent-danger)', background: 'rgba(239, 68, 68, 0.15)' }}>
+                              <X size={14} /> 取り消す
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -311,9 +283,9 @@ export default function DeskPage() {
             </div>
 
             <div className={styles.taskList}>
-              <AnimatePresence mode="popLayout">
+              <AnimatePresence>
                 {activeTab === "todo" && todoTasks.map(task => (
-                  <SwipeableTask key={task.id} task={task} onComplete={() => updateTaskStatus(task.id, "done")} onClick={() => toggleExecuting(task.id)} />
+                  <TaskCard key={task.id} task={task} onComplete={() => updateTaskStatus(task.id, "done")} onClick={() => toggleExecuting(task.id)} />
                 ))}
 
                 {activeTab === "done" && doneTasks.map(task => (
@@ -341,39 +313,25 @@ export default function DeskPage() {
   );
 }
 
-// Swipeable Task Component
-function SwipeableTask({ task, onComplete, onClick }) {
-  const controls = useAnimation();
-
-  const handleDragEnd = async (event, info) => {
-    const offset = info.offset.x;
-    const velocity = info.velocity.x;
-
-    if (offset > 100 || velocity > 500) {
-      await controls.start({ x: "100%", opacity: 0 });
-      onComplete();
-    } else {
-      controls.start({ x: 0, opacity: 1 });
-    }
+// Checkbox Task Component
+function TaskCard({ task, onComplete, onClick }) {
+  const handleCheck = (e) => {
+    e.stopPropagation();
+    onComplete();
   };
 
   return (
-    <motion.div layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className={styles.swipeWrapper}>
-      <div className={styles.swipeBackground}>
-        <CheckCircle2 size={24} />
-        <span>完了にする</span>
+    <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className={`${styles.studentTaskCard} ${task.isExecuting ? styles.executingCard : ""}`} onClick={onClick}>
+      <button className={styles.checkboxBtn} onClick={handleCheck} aria-label="完了にする"></button>
+      <div className={styles.taskContent} style={{ flex: 1 }}>
+        <div className={styles.taskGoalText}>{task.project}</div>
+        <h3 className={styles.taskTitle}>{task.title}</h3>
       </div>
-      <motion.div drag="x" dragDirectionLock dragConstraints={{ left: 0, right: 0 }} dragElastic={{ right: 0.5, left: 0 }} onDragEnd={handleDragEnd} animate={controls} whileTap={{ cursor: "grabbing" }} className={`${styles.studentTaskCard} ${task.isExecuting ? styles.executingCard : ""}`} onClick={onClick}>
-        <div className={styles.taskContent}>
-          <div className={styles.taskGoalText}>{task.project}</div>
-          <h3 className={styles.taskTitle}>{task.title}</h3>
+      {task.isExecuting && (
+        <div className={styles.executingBadge}>
+          <span className={styles.pulseDot} /> 実行中
         </div>
-        {task.isExecuting && (
-          <div className={styles.executingBadge}>
-            <span className={styles.pulseDot} /> 実行中
-          </div>
-        )}
-      </motion.div>
+      )}
     </motion.div>
   );
 }

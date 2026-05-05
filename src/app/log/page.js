@@ -34,6 +34,16 @@ const TEMPLATES = {
     fields: [
       { id: "free", label: "思考を書き出そう", placeholder: "いま考えていること、学んだこと..." }
     ]
+  },
+  EXPECTATION: {
+    id: "EXPECTATION",
+    name: "理想と最悪の想定",
+    icon: Lightbulb,
+    fields: [
+      { id: "ideal", label: "理想の状況", placeholder: "全てがうまくいった場合、どうなるか" },
+      { id: "worst", label: "最悪の状況", placeholder: "想定される最悪の事態は何か" },
+      { id: "action", label: "最悪に対する対処法", placeholder: "最悪の事態が起きたらどうカバーするか" }
+    ]
   }
 };
 

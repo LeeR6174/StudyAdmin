@@ -1,6 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
+import GlobalActions from "@/components/GlobalActions";
 import { AppProvider } from "@/context/AppProvider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -30,6 +31,7 @@ export default function RootLayout({ children }) {
       <body>
         <AppProvider>
           <main style={{ paddingBottom: "var(--nav-height)", minHeight: "100vh" }}>
+            <GlobalActions />
             {children}
           </main>
           <BottomNav />

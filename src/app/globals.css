@@ -1,18 +1,18 @@
 :root {
-  --bg-main: #0f1115;
-  --bg-surface: #1b1e24;
-  --bg-surface-hover: #272a30;
+  --bg-main: #1c1c1e;
+  --bg-surface: #2c2c2e;
+  --bg-surface-hover: #3a3a3c;
   
-  --text-main: #f3f4f6;
-  --text-muted: #9ca3af;
+  --text-main: #f2f2f7;
+  --text-muted: #8e8e93;
   
-  --accent-primary: #6366f1;
-  --accent-primary-hover: #4f46e5;
-  --accent-danger: #ef4444;
-  --accent-success: #10b981;
+  --accent-primary: #bf5af2;
+  --accent-primary-hover: #af52de;
+  --accent-danger: #ff6961;
+  --accent-success: #32d74b;
   
   --border-color: rgba(255, 255, 255, 0.1);
-  --glass-bg: rgba(27, 30, 36, 0.7);
+  --glass-bg: rgba(28, 28, 30, 0.75);
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);

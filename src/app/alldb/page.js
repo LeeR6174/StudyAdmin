@@ -6,10 +6,11 @@ import { Database, Plus, Loader2, CheckSquare, Square, RefreshCw } from "lucide-
 import { useAppContext } from "@/context/AppProvider";
 
 export default function AllDbPage() {
-  const { showToast, isTestMode } = useAppContext();
+  const { showToast, isTestMode, setAllDbTaskCount } = useAppContext();
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState("タスク");
 
   // Form states
   const [name, setName] = useState("");
@@ -20,10 +21,15 @@ export default function AllDbPage() {
   const fetchItems = async () => {
     setIsLoading(true);
     if (isTestMode) {
-      setItems([
-        { id: "test1", name: "新しいアプリのアイデア", tag: "アイデア", reflection: "AIを使った学習サポート機能があれば良さそう", date: new Date().toISOString().split("T")[0], isCompleted: false },
-        { id: "test2", name: "今日の復習", tag: "タスク", reflection: "数学の公式を確認する", date: new Date().toISOString().split("T")[0], isCompleted: false },
-      ]);
+      const dummy = [
+        { id: "test1", name: "Notion連携の新機能", tag: "アイデア", reflection: "グラフ表示機能を追加したら面白そう", date: new Date().toISOString().split("T")[0], isCompleted: false },
+        { id: "test2", name: "バグ修正: アニメーション", tag: "タスク", reflection: "完了時のフェードアウトを直す", date: new Date().toISOString().split("T")[0], isCompleted: false },
+        { id: "test3", name: "買い物リスト", tag: "メモ", reflection: "牛乳、卵、コーヒー豆", date: new Date(Date.now() - 86400000).toISOString().split("T")[0], isCompleted: false },
+        { id: "test4", name: "読書: Clean Code", tag: "タスク", reflection: "3章まで読んで要点をまとめる", date: new Date().toISOString().split("T")[0], isCompleted: false },
+        { id: "test5", name: "ブログのネタ", tag: "アイデア", reflection: "Next.js 14のApp Routerについて書く", date: new Date(Date.now() - 86400000 * 2).toISOString().split("T")[0], isCompleted: false },
+      ];
+      setItems(dummy);
+      setAllDbTaskCount(dummy.filter(i => i.tag === "タスク").length);
       setIsLoading(false);
       return;
     }
@@ -33,6 +39,7 @@ export default function AllDbPage() {
       if (res.ok) {
         const data = await res.json();
         setItems(data);
+        setAllDbTaskCount(data.filter(i => i.tag === "タスク").length);
       }
     } catch (error) {
       console.error("Fetch error", error);
@@ -55,7 +62,8 @@ export default function AllDbPage() {
       const created = { id: Date.now().toString(), name, tag, reflection, date, isCompleted: false };
       setName("");
       setReflection("");
-      if (tag === "タスク") setItems((prev) => [created, ...prev]);
+      setItems((prev) => [created, ...prev]);
+      if (tag === "タスク") setAllDbTaskCount(prev => prev + 1);
       showToast("テストデータを作成しました！");
       setIsSubmitting(false);
       return;
@@ -71,15 +79,10 @@ export default function AllDbPage() {
 
       if (res.ok) {
         const created = await res.json();
-        // UI updates
         setName("");
         setReflection("");
-        
-        // Only append to UI if it matches the current filter (it's a task and not completed)
-        // Since we force it to be uncompleted on create, we just check tag.
-        if (tag === "タスク") {
-          setItems((prev) => [created, ...prev]);
-        }
+        setItems((prev) => [created, ...prev]);
+        if (tag === "タスク") setAllDbTaskCount(prev => prev + 1);
         showToast("データを作成しました！");
       }
     } catch (error) {
@@ -91,8 +94,12 @@ export default function AllDbPage() {
 
   const handleComplete = async (id) => {
     // Optimistic update: remove from the uncompleted list
+    const itemToComplete = items.find(i => i.id === id);
     setItems((prev) => prev.filter((item) => item.id !== id));
-    showToast("タスクを完了にしました！");
+    if (itemToComplete?.tag === "タスク") {
+      setAllDbTaskCount(prev => prev > 0 ? prev - 1 : 0);
+    }
+    showToast("完了にしました！");
     if (isTestMode) return;
     try {
       await fetch("/api/alldb", {
@@ -161,11 +168,11 @@ export default function AllDbPage() {
             </div>
 
             <div>
-              <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "4px", display: "block" }}>振り返り (Reflection)</label>
+              <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "4px", display: "block" }}>要件 / 詳細メモ</label>
               <textarea 
                 value={reflection} 
                 onChange={(e) => setReflection(e.target.value)} 
-                placeholder="詳細や振り返りを記入..." 
+                placeholder="タスクの具体的な要件や、メモしておきたいことを記入..." 
                 className={styles.input}
                 style={{ minHeight: "80px", resize: "vertical" }}
               />
@@ -180,40 +187,55 @@ export default function AllDbPage() {
 
         {/* Task List */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle} style={{ marginBottom: "16px" }}>未完了のタスク</h2>
-          
-          {isLoading && items.length === 0 ? (
+          <h2 className={styles.sectionTitle} style={{ marginBottom: "16px" }}>未完了のデータ</h2>
+          <div className={styles.content}>
+        <div className={styles.tabs} style={{ marginBottom: "16px" }}>
+          <button className={`${styles.tab} ${activeTab === "タスク" ? styles.activeTab : ""}`} onClick={() => setActiveTab("タスク")}>
+            タスク
+          </button>
+          <button className={`${styles.tab} ${activeTab === "アイデア" ? styles.activeTab : ""}`} onClick={() => setActiveTab("アイデア")}>
+            アイデア
+          </button>
+          <button className={`${styles.tab} ${activeTab === "メモ" ? styles.activeTab : ""}`} onClick={() => setActiveTab("メモ")}>
+            メモ
+          </button>
+        </div>
+
+        <div className={styles.list}>
+          {isLoading ? (
             <div className={styles.loadingContainer}>
-              <Loader2 size={32} className={styles.spin} />
-              <p>取得中...</p>
+              <Loader2 className={styles.spin} size={24} />
+              <p>データを取得中...</p>
             </div>
-          ) : items.length > 0 ? (
-            <div className={styles.teacherTaskList} style={{ gap: "12px" }}>
-              {items.map((item) => (
-                <div key={item.id} className={styles.teacherTaskCard} style={{ flexDirection: "column", alignItems: "flex-start", gap: "8px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "flex-start" }}>
-                    <div>
-                      <div style={{ fontSize: "0.75rem", color: "#c084fc", marginBottom: "4px", fontWeight: 600 }}>{item.date}</div>
-                      <div style={{ fontSize: "1rem", fontWeight: 500 }}>{item.name}</div>
-                    </div>
-                    <button 
-                      onClick={() => handleComplete(item.id)} 
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
-                    >
-                      <Square size={22} color="var(--text-muted)" style={{ opacity: 0.8, transition: 'var(--transition-fast)' }} />
-                    </button>
-                  </div>
-                  {item.reflection && (
-                    <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", backgroundColor: "rgba(0,0,0,0.2)", padding: "8px", borderRadius: "4px", width: "100%" }}>
-                      {item.reflection}
-                    </div>
-                  )}
-                </div>
-              ))}
+          ) : items.filter(i => i.tag === activeTab).length === 0 ? (
+            <div className={styles.emptyState}>
+              <Database size={48} className={styles.emptyIcon} />
+              <p>未完了の{activeTab}はありません。</p>
             </div>
           ) : (
-            <p className={styles.emptyText} style={{ textAlign: "center", padding: "24px 0" }}>未完了のタスクはありません</p>
+            items.filter(i => i.tag === activeTab).map((item) => (
+              <div key={item.id} className={styles.studentTaskCard} style={{ flexDirection: "column", alignItems: "flex-start", gap: "12px", padding: "16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "flex-start" }}>
+                  <div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--accent-primary)", marginBottom: "4px", fontWeight: 600 }}>{item.date}</div>
+                    <div style={{ fontSize: "1rem", fontWeight: 500 }}>{item.name}</div>
+                  </div>
+                  <button 
+                    onClick={() => handleComplete(item.id)} 
+                    className={styles.checkboxBtn}
+                    aria-label="完了にする"
+                  ></button>
+                </div>
+                {item.reflection && (
+                  <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", backgroundColor: "rgba(0,0,0,0.2)", padding: "10px", borderRadius: "8px", width: "100%", marginTop: "12px", border: "1px solid var(--border-color)" }}>
+                    {item.reflection}
+                  </div>
+                )}
+              </div>
+            ))
           )}
+        </div>
+      </div>
         </section>
       </div>
     </div>

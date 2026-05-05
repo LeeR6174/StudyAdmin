@@ -4,9 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, MessageSquarePlus, History, Database } from "lucide-react";
 import styles from "./BottomNav.module.css";
+import { useAppContext } from "@/context/AppProvider";
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { allDbTaskCount } = useAppContext();
 
   const navItems = [
     {
@@ -28,6 +30,7 @@ export default function BottomNav() {
       name: "ALL",
       path: "/alldb",
       icon: Database,
+      badge: allDbTaskCount > 0 ? allDbTaskCount : null,
     },
   ];
 
@@ -40,12 +43,14 @@ export default function BottomNav() {
 
           return (
             <li key={item.name} className={styles.navItem}>
-              <Link
-                href={item.path}
-                className={`${styles.navLink} ${isActive ? styles.active : ""}`}
-              >
-                <div className={styles.iconWrapper}>
+              <Link href={item.path} className={`${styles.navLink} ${isActive ? styles.active : ""}`}>
+                <div style={{ position: 'relative' }}>
                   <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                  {item.badge && (
+                    <span style={{ position: 'absolute', top: '-4px', right: '-8px', background: 'var(--accent-danger)', color: 'white', fontSize: '0.65rem', fontWeight: 'bold', padding: '2px 5px', borderRadius: '10px', lineHeight: 1 }}>
+                      {item.badge}
+                    </span>
+                  )}
                 </div>
                 <span className={styles.label}>{item.name}</span>
               </Link>

@@ -10,6 +10,7 @@ export function AppProvider({ children }) {
   const [isTeacherMode, setIsTeacherMode] = useState(false);
   const [toast, setToast] = useState(null);
   const [isTestMode, setIsTestMode] = useState(false);
+  const [allDbTaskCount, setAllDbTaskCount] = useState(0);
 
   // Load state from local storage on mount
   useEffect(() => {
@@ -22,6 +23,23 @@ export function AppProvider({ children }) {
       setIsTestMode(true);
     }
   }, []);
+
+  useEffect(() => {
+    const fetchAllDbCount = async () => {
+      if (isTestMode) {
+        setAllDbTaskCount(2);
+        return;
+      }
+      try {
+        const res = await fetch("/api/alldb");
+        if (res.ok) {
+          const data = await res.json();
+          setAllDbTaskCount(data.filter(i => i.tag === "タスク").length);
+        }
+      } catch (e) {}
+    };
+    fetchAllDbCount();
+  }, [isTestMode]);
 
   const toggleTeacherMode = (password) => {
     if (isTeacherMode) {
@@ -54,7 +72,7 @@ export function AppProvider({ children }) {
   };
 
   return (
-    <AppContext.Provider value={{ isTeacherMode, toggleTeacherMode, showToast, isTestMode, toggleTestMode }}>
+    <AppContext.Provider value={{ isTeacherMode, toggleTeacherMode, showToast, isTestMode, toggleTestMode, allDbTaskCount, setAllDbTaskCount }}>
       {children}
       
       {/* Global Toast */}

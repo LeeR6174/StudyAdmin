@@ -14,17 +14,18 @@ export async function GET() {
       filter: {
         and: [
           {
-            property: "タグ",
-            select: {
-              equals: "タスク",
-            },
-          },
-          {
             property: "完了",
             checkbox: {
               equals: false,
             },
           },
+          {
+            or: [
+              { property: "タグ", select: { equals: "タスク" } },
+              { property: "タグ", select: { equals: "アイデア" } },
+              { property: "タグ", select: { equals: "メモ" } },
+            ]
+          }
         ],
       },
       sorts: [{ property: "日付", direction: "descending" }],
@@ -66,9 +67,36 @@ export async function POST(request) {
       properties.日付 = { date: { start: date } };
     }
 
+    const children = [];
+    if (tag === "タスク") {
+      children.push(
+        {
+          object: 'block',
+          type: 'heading_2',
+          heading_2: { rich_text: [{ type: 'text', text: { content: '要件' } }] }
+        },
+        {
+          object: 'block',
+          type: 'paragraph',
+          paragraph: { rich_text: [{ type: 'text', text: { content: reflection || "（特になし）" } }] }
+        },
+        {
+          object: 'block',
+          type: 'heading_2',
+          heading_2: { rich_text: [{ type: 'text', text: { content: '回答' } }] }
+        },
+        {
+          object: 'block',
+          type: 'paragraph',
+          paragraph: { rich_text: [] }
+        }
+      );
+    }
+
     const response = await notion.pages.create({
       parent: { database_id: databaseId },
       properties,
+      children: children.length > 0 ? children : undefined,
     });
 
     const newItem = {
