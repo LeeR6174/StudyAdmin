@@ -184,7 +184,7 @@ export default function DeskPage() {
           <h1 className={styles.title}>{isTeacherMode ? "コーチデスク" : "今日の宿題"}</h1>
           <p className={styles.subtitle}>{isTeacherMode ? "コーチング・ループの実践" : "一つずつ確実に終わらせよう"}</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginRight: '90px' }}>
           <Link href="/alldb" className={styles.iconBtn} style={{ background: 'var(--bg-surface)', boxShadow: 'var(--shadow-sm)', borderRadius: '50%', padding: '10px' }} title="ALL DBへ">
             <Database size={22} color="var(--accent-primary)" />
           </Link>
