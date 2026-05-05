@@ -2,188 +2,69 @@
 
 import { useState, useEffect } from "react";
 import styles from "./page.module.css";
-import { Lock, Plus, Target, CheckCircle2, X, UserCog, Loader2, MessageSquare, ArrowUpRight, Settings, Database, CheckSquare, Square } from "lucide-react";
+import { Plus, Target, CheckCircle2, X, Loader2, MessageSquare, ArrowUpRight, CheckSquare, Square } from "lucide-react";
 import { useAppContext } from "@/context/AppProvider";
-import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function DeskPage() {
-  const { isTeacherMode, showToast, isTestMode } = useAppContext();
-  const [activeTab, setActiveTab] = useState("todo"); 
+  const {
+    isTeacherMode, showToast, isTestMode,
+    tasks, tasksLoaded, recentLog,
+    addTask, updateTaskStatus, promoteToTodo, revertToBacklog, toggleExecuting,
+  } = useAppContext();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [tasks, setTasks] = useState([]);
-  const [recentLog, setRecentLog] = useState(null);
-  const [bigGoals, setBigGoals] = useState([]);
-  
+  const [activeTab, setActiveTab] = useState("todo");
   const [newGoalTitle, setNewGoalTitle] = useState("");
   const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [selectedGoalTitle, setSelectedGoalTitle] = useState("");
   const [showDoneGoals, setShowDoneGoals] = useState(false);
 
-  useEffect(() => {
-    async function fetchData() {
-      if (isTestMode) {
-        setTasks([
-          { id: "test1", title: "数学 ページ20〜25", project: "期末テスト対策", status: "todo", isExecuting: false },
-          { id: "test2", title: "英単語 100個暗記", project: "期末テスト対策", status: "todo", isExecuting: false },
-          { id: "test3", title: "理科 過去問1年分", project: "期末テスト対策", status: "backlog", isExecuting: false },
-          { id: "test4", title: "社会 歴史まとめノート", project: "期末テスト対策", status: "backlog", isExecuting: false },
-          { id: "test5", title: "国語 漢字プリント", project: "日々の宿題", status: "done", isExecuting: false },
-          { id: "test6", title: "英語 リスニング10分", project: "日々の宿題", status: "todo", isExecuting: false },
-          { id: "test7", title: "プログラミング Reactの復習", project: "自己啓発", status: "backlog", isExecuting: false },
-          { id: "test8", title: "ランニング 3km", project: "自己啓発", status: "done", isExecuting: false },
-        ]);
-        setBigGoals(["期末テスト対策", "日々の宿題", "自己啓発"]);
-        setSelectedGoalTitle("期末テスト対策");
-        setRecentLog({ date: new Date().toISOString(), type: "壁打ち", content: "テストまであと1週間。集中して頑張る！スマホは別の部屋に置くようにする。" });
-        setIsLoading(false);
-        return;
-      }
+  // Derive big goals from global tasks
+  const bigGoals = Array.from(new Set(tasks.map(t => t.project).filter(Boolean)));
 
-      try {
-        const [tasksRes, logsRes] = await Promise.all([
-          fetch("/api/tasks"),
-          fetch("/api/logs")
-        ]);
-
-        if (tasksRes.ok) {
-          const data = await tasksRes.json();
-          const tasksWithState = data.map(t => ({ ...t, isExecuting: false }));
-          setTasks(tasksWithState);
-
-          const projects = Array.from(new Set(data.map(t => t.project).filter(Boolean)));
-          setBigGoals(projects);
-          if (projects.length > 0) setSelectedGoalTitle(projects[0]);
-        }
-
-        if (logsRes.ok) {
-          const logsData = await logsRes.json();
-          // Find the most recent student log (not teacher log)
-          const latestStudentLog = logsData.find(log => !log.isTeacherLog);
-          if (latestStudentLog) {
-            setRecentLog(latestStudentLog);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch data", error);
-      } finally {
-        setIsLoading(false);
-      }
+  // Persist selectedGoalTitle across navigations via localStorage
+  const [selectedGoalTitle, setSelectedGoalTitle] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("studyAdmin_selectedGoal") || "";
     }
-    fetchData();
-  }, []);
+    return "";
+  });
+
+  // When tasks first load, restore or default the selected goal
+  useEffect(() => {
+    if (!tasksLoaded || bigGoals.length === 0) return;
+    const saved = typeof window !== "undefined" ? localStorage.getItem("studyAdmin_selectedGoal") : null;
+    if (saved && bigGoals.includes(saved)) {
+      setSelectedGoalTitle(saved);
+    } else if (!selectedGoalTitle || !bigGoals.includes(selectedGoalTitle)) {
+      setSelectedGoalTitle(bigGoals[0]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasksLoaded]);
+
+  const handleSetGoal = (goal) => {
+    setSelectedGoalTitle(goal);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("studyAdmin_selectedGoal", goal);
+    }
+  };
 
   const addBigGoal = async (e) => {
     e.preventDefault();
     if (!newGoalTitle.trim()) return;
     if (!bigGoals.includes(newGoalTitle)) {
-      setBigGoals([...bigGoals, newGoalTitle]);
-      if (isTestMode) {
-        showToast("テストモード: Notionには保存されません");
-      } else {
-        try {
-          const res = await fetch("/api/tasks", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title: `【大目標】${newGoalTitle}`, project: newGoalTitle, status: "未アサイン" })
-          });
-          if (!res.ok) {
-            const errData = await res.json();
-            throw new Error(errData.error || "大目標の保存に失敗しました");
-          }
-          showToast("大目標を保存しました");
-        } catch (err) {
-          console.error("Add Big Goal Error:", err);
-          showToast(`エラー: ${err.message}`);
-          // 失敗したらリストから取り除く
-          setBigGoals(prev => prev.filter(g => g !== newGoalTitle));
-        }
-      }
+      await addTask({ title: `【大目標】${newGoalTitle}`, project: newGoalTitle, status: "backlog" });
+      showToast(isTestMode ? "テストモード: Notionには保存されません" : "大目標を保存しました");
     }
-    setSelectedGoalTitle(newGoalTitle);
+    handleSetGoal(newGoalTitle);
     setNewGoalTitle("");
   };
 
   const addTaskToBacklog = async (e) => {
     e.preventDefault();
     if (!newTaskTitle.trim() || !selectedGoalTitle) return;
-    
-    const tempId = Date.now().toString();
-    const newTask = { id: tempId, project: selectedGoalTitle, title: newTaskTitle, status: "backlog", isExecuting: false };
-    setTasks(prev => [...prev, newTask]);
+    await addTask({ title: newTaskTitle, project: selectedGoalTitle, status: "backlog" });
+    showToast(isTestMode ? "テストモード: Notionには保存されません" : "タスクをストックしました");
     setNewTaskTitle("");
-
-    if (isTestMode) return;
-
-    try {
-      const res = await fetch("/api/tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newTaskTitle, project: selectedGoalTitle, status: "未アサイン" })
-      });
-      if (res.ok) {
-        const created = await res.json();
-        setTasks(prev => prev.map(t => t.id === tempId ? { ...created, isExecuting: false } : t));
-        showToast("タスクをストックしました");
-      } else {
-        const errData = await res.json();
-        throw new Error(errData.error || "サーバーエラーが発生しました");
-      }
-    } catch (e) {
-      console.error("Add Task Error:", e);
-      showToast(`エラー: ${e.message}`);
-      setTasks(prev => prev.filter(t => t.id !== tempId));
-    }
-  };
-
-  const promoteToTodo = async (taskId) => {
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "todo" } : t));
-    showToast("宿題にアサインしました");
-    if (isTestMode) return;
-    await fetch("/api/tasks", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: taskId, status: "todo" })
-    });
-  };
-
-  const revertToBacklog = async (taskId) => {
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "backlog" } : t));
-    showToast("アサインを取り消しました");
-    if (isTestMode) return;
-    await fetch("/api/tasks", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: taskId, status: "backlog" })
-    });
-  };
-
-  // --- Student Actions ---
-  const toggleExecuting = (taskId) => {
-    if (isTeacherMode) return;
-    setTasks(prev => prev.map(t => 
-      t.id === taskId ? { ...t, isExecuting: !t.isExecuting } : { ...t, isExecuting: false }
-    ));
-  };
-
-  const updateTaskStatus = async (taskId, newStatus) => {
-    setTasks(prev => prev.map(t => 
-      t.id === taskId ? { ...t, status: newStatus, isExecuting: false } : t
-    ));
-    if (newStatus === "done") {
-      showToast("タスクを完了しました！");
-    }
-    if (isTestMode) return;
-    try {
-      await fetch("/api/tasks", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: taskId, status: newStatus })
-      });
-    } catch (e) {
-      console.error("Failed to update status", e);
-    }
   };
 
   const backlogTasks = tasks.filter(t => t.status === "backlog" && t.project === selectedGoalTitle && !t.title.startsWith("【大目標】"));
@@ -199,10 +80,8 @@ export default function DeskPage() {
         </div>
       </header>
 
-
-
       <div className={`${styles.content} no-scrollbar`}>
-        {isLoading ? (
+        {!tasksLoaded ? (
           <div className={styles.loadingContainer}>
             <Loader2 size={32} className={styles.spin} />
             <p>Notionと同期中...</p>
@@ -234,7 +113,7 @@ export default function DeskPage() {
                 }).map(goal => {
                   const goalTask = tasks.find(t => t.project === goal && t.title.startsWith("【大目標】"));
                   return (
-                    <div key={goal} className={`${styles.goalItem} ${selectedGoalTitle === goal ? styles.selectedGoal : ""}`} onClick={() => setSelectedGoalTitle(goal)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div key={goal} className={`${styles.goalItem} ${selectedGoalTitle === goal ? styles.selectedGoal : ""}`} onClick={() => handleSetGoal(goal)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {goalTask && (
                         <button onClick={(e) => { e.stopPropagation(); updateTaskStatus(goalTask.id, "done"); }} style={{ background: 'none', border: 'none', padding: 0, display: 'flex', color: 'var(--text-muted)' }}>
                           <Square size={16} />
@@ -262,7 +141,7 @@ export default function DeskPage() {
                       }).map(goal => {
                         const goalTask = tasks.find(t => t.project === goal && t.title.startsWith("【大目標】"));
                         return (
-                          <div key={goal} className={`${styles.goalItem} ${selectedGoalTitle === goal ? styles.selectedGoal : ""}`} onClick={() => setSelectedGoalTitle(goal)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div key={goal} className={`${styles.goalItem} ${selectedGoalTitle === goal ? styles.selectedGoal : ""}`} onClick={() => handleSetGoal(goal)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <button onClick={(e) => { e.stopPropagation(); updateTaskStatus(goalTask.id, "todo"); }} style={{ background: 'none', border: 'none', padding: 0, display: 'flex', color: 'var(--accent-primary)' }}>
                               <CheckSquare size={16} />
                             </button>
@@ -274,6 +153,7 @@ export default function DeskPage() {
                   )}
                 </div>
               )}
+
               <form onSubmit={addBigGoal} className={styles.addForm}>
                 <input type="text" value={newGoalTitle} onChange={(e) => setNewGoalTitle(e.target.value)} placeholder="新しい大目標を追加..." className={styles.input} />
                 <button type="submit" className={styles.iconSubmitBtn}><Plus size={20} /></button>

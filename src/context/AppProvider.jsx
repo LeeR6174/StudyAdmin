@@ -6,23 +6,18 @@ import { CheckCircle2 } from "lucide-react";
 
 const AppContext = createContext();
 
-export function AppProvider({ children }) {
-  const [isTeacherMode, setIsTeacherMode] = useState(false);
-  const [toast, setToast] = useState(null);
-  const [isTestMode, setIsTestMode] = useState(false);
-  const [inboxCount, setInboxCount] = useState(0);
+// Safe synchronous localStorage read (SSR-safe)
+function getLocalBool(key) {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(key) === "true";
+}
 
-  // Load state from local storage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("studyAdmin_teacherMode");
-    if (saved === "true") {
-      setIsTeacherMode(true);
-    }
-    const savedTest = localStorage.getItem("studyAdmin_testMode");
-    if (savedTest === "true") {
-      setIsTestMode(true);
-    }
-  }, []);
+export function AppProvider({ children }) {
+  // Initialize synchronously from localStorage to avoid race conditions
+  const [isTeacherMode, setIsTeacherMode] = useState(() => getLocalBool("studyAdmin_teacherMode"));
+  const [toast, setToast] = useState(null);
+  const [isTestMode, setIsTestMode] = useState(() => getLocalBool("studyAdmin_testMode"));
+  const [inboxCount, setInboxCount] = useState(0);
 
   useEffect(() => {
     const fetchInboxCount = async () => {
@@ -71,8 +66,142 @@ export function AppProvider({ children }) {
     }, 2500);
   };
 
+  // =========================================================
+  // GLOBAL TASKS STATE — persists across page navigation
+  // =========================================================
+  const [tasks, setTasks] = useState([]);
+  const [tasksLoaded, setTasksLoaded] = useState(false);
+  const [recentLog, setRecentLog] = useState(null);
+
+  const fetchTasks = async () => {
+    try {
+      const [tasksRes, logsRes] = await Promise.all([
+        fetch("/api/tasks"),
+        fetch("/api/logs"),
+      ]);
+      if (tasksRes.ok) {
+        const data = await tasksRes.json();
+        setTasks(data.map(t => ({ ...t, isExecuting: false })));
+      }
+      if (logsRes.ok) {
+        const logsData = await logsRes.json();
+        const latestStudentLog = logsData.find(log => !log.isTeacherLog);
+        if (latestStudentLog) setRecentLog(latestStudentLog);
+      }
+    } catch (e) {
+      console.error("fetchTasks failed:", e);
+    } finally {
+      setTasksLoaded(true);
+    }
+  };
+
+  // Fetch once on app mount — NOT on every page navigation
+  useEffect(() => {
+    if (isTestMode) {
+      setTasks([
+        { id: "test1", title: "数学 ページ20〜25", project: "期末テスト対策", status: "todo", isExecuting: false },
+        { id: "test2", title: "英単語 100個暗記", project: "期末テスト対策", status: "todo", isExecuting: false },
+        { id: "test3", title: "理科 過去問1年分", project: "期末テスト対策", status: "backlog", isExecuting: false },
+        { id: "test4", title: "社会 歴史まとめノート", project: "期末テスト対策", status: "backlog", isExecuting: false },
+        { id: "test5", title: "国語 漢字プリント", project: "日々の宿題", status: "done", isExecuting: false },
+        { id: "test6", title: "英語 リスニング10分", project: "日々の宿題", status: "todo", isExecuting: false },
+        { id: "test7", title: "プログラミング Reactの復習", project: "自己啓発", status: "backlog", isExecuting: false },
+        { id: "test8", title: "ランニング 3km", project: "自己啓発", status: "done", isExecuting: false },
+      ]);
+      setRecentLog({ date: new Date().toISOString(), type: "壁打ち", content: "テストまであと1週間。集中して頑張る！スマホは別の部屋に置くようにする。" });
+      setTasksLoaded(true);
+    } else {
+      fetchTasks();
+    }
+  // Only run on first mount — isTestMode is now initialized synchronously so this runs correctly
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // --- Global Task Actions (all optimistic) ---
+  const addTask = async ({ title, project, status = "backlog" }) => {
+    const tempId = `temp_${Date.now()}`;
+    const newTask = { id: tempId, title, project, status, isExecuting: false };
+    setTasks(prev => [...prev, newTask]);
+
+    if (isTestMode) {
+      return; // Optimistic update already applied, caller shows toast
+    }
+    try {
+      const notionStatus = status === "todo" ? "未着手" : "未アサイン";
+      const res = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, project, status: notionStatus }),
+      });
+      if (res.ok) {
+        const created = await res.json();
+        setTasks(prev => prev.map(t => t.id === tempId ? { ...created, isExecuting: false } : t));
+      } else {
+        throw new Error("保存に失敗しました");
+      }
+    } catch (e) {
+      showToast(`エラー: ${e.message}`);
+      setTasks(prev => prev.filter(t => t.id !== tempId));
+    }
+  };
+
+  const updateTaskStatus = async (taskId, newStatus) => {
+    // Optimistic update immediately — Notion sync happens in the background
+    setTasks(prev => prev.map(t =>
+      t.id === taskId ? { ...t, status: newStatus, isExecuting: false } : t
+    ));
+    if (newStatus === "done") showToast("タスクを完了しました！");
+    if (isTestMode) return;
+    try {
+      await fetch("/api/tasks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: taskId, status: newStatus }),
+      });
+    } catch (e) {
+      console.error("Failed to update status", e);
+    }
+  };
+
+  const promoteToTodo = async (taskId) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "todo" } : t));
+    showToast("宿題にアサインしました");
+    if (isTestMode) return;
+    await fetch("/api/tasks", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: taskId, status: "todo" }),
+    });
+  };
+
+  const revertToBacklog = async (taskId) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "backlog" } : t));
+    showToast("アサインを取り消しました");
+    if (isTestMode) return;
+    await fetch("/api/tasks", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: taskId, status: "backlog" }),
+    });
+  };
+
+  const toggleExecuting = (taskId) => {
+    setTasks(prev => prev.map(t =>
+      t.id === taskId ? { ...t, isExecuting: !t.isExecuting } : { ...t, isExecuting: false }
+    ));
+  };
+
   return (
-    <AppContext.Provider value={{ isTeacherMode, toggleTeacherMode, showToast, isTestMode, toggleTestMode, inboxCount, setInboxCount }}>
+    <AppContext.Provider value={{
+      isTeacherMode, toggleTeacherMode,
+      showToast,
+      isTestMode, toggleTestMode,
+      inboxCount, setInboxCount,
+      // Global task state
+      tasks, setTasks, tasksLoaded, recentLog,
+      fetchTasks,
+      addTask, updateTaskStatus, promoteToTodo, revertToBacklog, toggleExecuting,
+    }}>
       {children}
       
       {/* Global Toast */}
