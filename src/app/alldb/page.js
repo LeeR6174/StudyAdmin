@@ -10,7 +10,6 @@ export default function AllDbPage() {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState("タスク");
 
   // Form states
   const [name, setName] = useState("");
@@ -187,33 +186,21 @@ export default function AllDbPage() {
 
         {/* Task List */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle} style={{ marginBottom: "16px" }}>未完了のデータ</h2>
+          <h2 className={styles.sectionTitle} style={{ marginBottom: "16px" }}>未完了のタスク</h2>
           <div className={styles.content}>
-        <div className={styles.tabs} style={{ marginBottom: "16px" }}>
-          <button className={`${styles.tab} ${activeTab === "タスク" ? styles.activeTab : ""}`} onClick={() => setActiveTab("タスク")}>
-            タスク
-          </button>
-          <button className={`${styles.tab} ${activeTab === "アイデア" ? styles.activeTab : ""}`} onClick={() => setActiveTab("アイデア")}>
-            アイデア
-          </button>
-          <button className={`${styles.tab} ${activeTab === "メモ" ? styles.activeTab : ""}`} onClick={() => setActiveTab("メモ")}>
-            メモ
-          </button>
-        </div>
-
         <div className={styles.list}>
           {isLoading ? (
             <div className={styles.loadingContainer}>
               <Loader2 className={styles.spin} size={24} />
               <p>データを取得中...</p>
             </div>
-          ) : items.filter(i => i.tag === activeTab).length === 0 ? (
+          ) : items.filter(i => i.tag === "タスク").length === 0 ? (
             <div className={styles.emptyState}>
               <Database size={48} className={styles.emptyIcon} />
-              <p>未完了の{activeTab}はありません。</p>
+              <p>未完了のタスクはありません。</p>
             </div>
           ) : (
-            items.filter(i => i.tag === activeTab).map((item) => (
+            items.filter(i => i.tag === "タスク").map((item) => (
               <div key={item.id} className={styles.studentTaskCard} style={{ flexDirection: "column", alignItems: "flex-start", gap: "12px", padding: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "flex-start" }}>
                   <div>

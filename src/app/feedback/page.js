@@ -44,18 +44,37 @@ export default function FeedbackPage() {
     }
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
     if (!canSubmit) {
-      e.preventDefault();
       showToast("連続送信の制限中です");
       return;
     }
     
-    // Log submission
-    const stored = localStorage.getItem("studyAdmin_feedbacks");
-    const timestamps = stored ? JSON.parse(stored) : [];
-    timestamps.push(Date.now());
-    localStorage.setItem("studyAdmin_feedbacks", JSON.stringify(timestamps));
+    try {
+      const formData = new FormData(e.target);
+      const res = await fetch("/__forms.html", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams(formData).toString(),
+      });
+      
+      if (res.ok) {
+        showToast("送信が完了しました。ご意見ありがとうございます！");
+        // Log submission
+        const stored = localStorage.getItem("studyAdmin_feedbacks");
+        const timestamps = stored ? JSON.parse(stored) : [];
+        timestamps.push(Date.now());
+        localStorage.setItem("studyAdmin_feedbacks", JSON.stringify(timestamps));
+        checkRateLimit();
+        e.target.reset();
+      } else {
+        showToast("送信に失敗しました。時間をおいて再度お試しください。");
+      }
+    } catch (error) {
+      console.error(error);
+      showToast("送信に失敗しました。");
+    }
   };
   return (
     <div className={styles.container}>
@@ -99,7 +118,7 @@ export default function FeedbackPage() {
 
         <div className={styles.section}>
           {/* Netlify Form standard structure */}
-          <form name="contact" method="POST" data-netlify="true" onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form name="contact" method="POST" onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <input type="hidden" name="form-name" value="contact" />
             <p style={{ margin: 0 }}>
               <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '8px', fontSize: '0.9rem' }}>
