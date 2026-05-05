@@ -1,9 +1,11 @@
 "use client";
 
 import styles from "../page.module.css";
-import { Settings } from "lucide-react";
+import { Settings, Database } from "lucide-react";
+import { useAppContext } from "@/context/AppProvider";
 
 export default function FeedbackPage() {
+  const { isTestMode, toggleTestMode } = useAppContext();
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -17,6 +19,33 @@ export default function FeedbackPage() {
       </header>
       
       <div className={styles.content}>
+        {/* Test Mode Toggle Section */}
+        <div className={styles.section} style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h3 style={{ fontSize: '1rem', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Database size={18} color="#c084fc" />
+              テストデータモード
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              オンにするとダミーデータを表示し、Notionへの通信を遮断します。
+            </p>
+          </div>
+          <button 
+            onClick={toggleTestMode}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '20px',
+              border: 'none',
+              fontWeight: 'bold',
+              background: isTestMode ? '#c084fc' : 'rgba(255, 255, 255, 0.1)',
+              color: isTestMode ? 'white' : 'var(--text-main)',
+              cursor: 'pointer'
+            }}
+          >
+            {isTestMode ? "ON" : "OFF"}
+          </button>
+        </div>
+
         <div className={styles.section}>
           {/* Netlify Form standard structure */}
           <form name="contact" method="POST" data-netlify="true" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

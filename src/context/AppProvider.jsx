@@ -9,12 +9,17 @@ const AppContext = createContext();
 export function AppProvider({ children }) {
   const [isTeacherMode, setIsTeacherMode] = useState(false);
   const [toast, setToast] = useState(null);
+  const [isTestMode, setIsTestMode] = useState(false);
 
   // Load state from local storage on mount
   useEffect(() => {
     const saved = localStorage.getItem("studyAdmin_teacherMode");
     if (saved === "true") {
       setIsTeacherMode(true);
+    }
+    const savedTest = localStorage.getItem("studyAdmin_testMode");
+    if (savedTest === "true") {
+      setIsTestMode(true);
     }
   }, []);
 
@@ -33,6 +38,14 @@ export function AppProvider({ children }) {
     }
   };
 
+  const toggleTestMode = () => {
+    setIsTestMode((prev) => {
+      const next = !prev;
+      localStorage.setItem("studyAdmin_testMode", next.toString());
+      return next;
+    });
+  };
+
   const showToast = (message) => {
     setToast(message);
     setTimeout(() => {
@@ -41,7 +54,7 @@ export function AppProvider({ children }) {
   };
 
   return (
-    <AppContext.Provider value={{ isTeacherMode, toggleTeacherMode, showToast }}>
+    <AppContext.Provider value={{ isTeacherMode, toggleTeacherMode, showToast, isTestMode, toggleTestMode }}>
       {children}
       
       {/* Global Toast */}

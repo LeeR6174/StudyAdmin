@@ -6,7 +6,7 @@ import { Database, Plus, Loader2, CheckSquare, Square, RefreshCw } from "lucide-
 import { useAppContext } from "@/context/AppProvider";
 
 export default function AllDbPage() {
-  const { showToast } = useAppContext();
+  const { showToast, isTestMode } = useAppContext();
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,6 +19,15 @@ export default function AllDbPage() {
 
   const fetchItems = async () => {
     setIsLoading(true);
+    if (isTestMode) {
+      setItems([
+        { id: "test1", name: "新しいアプリのアイデア", tag: "アイデア", reflection: "AIを使った学習サポート機能があれば良さそう", date: new Date().toISOString().split("T")[0], isCompleted: false },
+        { id: "test2", name: "今日の復習", tag: "タスク", reflection: "数学の公式を確認する", date: new Date().toISOString().split("T")[0], isCompleted: false },
+      ]);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/alldb");
       if (res.ok) {
@@ -41,6 +50,17 @@ export default function AllDbPage() {
     if (!name.trim()) return;
     
     setIsSubmitting(true);
+    
+    if (isTestMode) {
+      const created = { id: Date.now().toString(), name, tag, reflection, date, isCompleted: false };
+      setName("");
+      setReflection("");
+      if (tag === "タスク") setItems((prev) => [created, ...prev]);
+      showToast("テストデータを作成しました！");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const payload = { name, tag, reflection, date };
       const res = await fetch("/api/alldb", {
@@ -73,6 +93,7 @@ export default function AllDbPage() {
     // Optimistic update: remove from the uncompleted list
     setItems((prev) => prev.filter((item) => item.id !== id));
     showToast("タスクを完了にしました！");
+    if (isTestMode) return;
     try {
       await fetch("/api/alldb", {
         method: "PATCH",

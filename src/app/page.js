@@ -8,7 +8,7 @@ import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import Link from "next/link";
 
 export default function DeskPage() {
-  const { isTeacherMode, toggleTeacherMode, showToast } = useAppContext();
+  const { isTeacherMode, toggleTeacherMode, showToast, isTestMode } = useAppContext();
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -25,6 +25,19 @@ export default function DeskPage() {
 
   useEffect(() => {
     async function fetchData() {
+      if (isTestMode) {
+        setTasks([
+          { id: "test1", title: "数学 ページ20", project: "テスト対策", status: "todo", isExecuting: false },
+          { id: "test2", title: "英単語 100個", project: "テスト対策", status: "backlog", isExecuting: false },
+          { id: "test3", title: "国語 ワーク", project: "日々の宿題", status: "done", isExecuting: false },
+        ]);
+        setBigGoals(["テスト対策", "日々の宿題"]);
+        setSelectedGoalTitle("テスト対策");
+        setRecentLog({ date: new Date().toISOString(), type: "壁打ち", content: "テスト勉強頑張るぞ！" });
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const [tasksRes, logsRes] = await Promise.all([
           fetch("/api/tasks"),
@@ -79,13 +92,17 @@ export default function DeskPage() {
     if (!newGoalTitle.trim()) return;
     if (!bigGoals.includes(newGoalTitle)) {
       setBigGoals([...bigGoals, newGoalTitle]);
-      try {
-        await fetch("/api/tasks", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: `【大目標】${newGoalTitle}`, project: newGoalTitle, status: "未アサイン" })
-        });
-      } catch (err) {}
+      if (isTestMode) {
+        showToast("テストモード: Notionには保存されません");
+      } else {
+        try {
+          await fetch("/api/tasks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: `【大目標】${newGoalTitle}`, project: newGoalTitle, status: "未アサイン" })
+          });
+        } catch (err) {}
+      }
     }
     setSelectedGoalTitle(newGoalTitle);
     setNewGoalTitle("");
@@ -99,6 +116,8 @@ export default function DeskPage() {
     const newTask = { id: tempId, project: selectedGoalTitle, title: newTaskTitle, status: "backlog", isExecuting: false };
     setTasks(prev => [...prev, newTask]);
     setNewTaskTitle("");
+
+    if (isTestMode) return;
 
     try {
       const res = await fetch("/api/tasks", {
@@ -121,6 +140,7 @@ export default function DeskPage() {
   const promoteToTodo = async (taskId) => {
     setTasks(tasks.map(t => t.id === taskId ? { ...t, status: "todo" } : t));
     showToast("宿題にアサインしました");
+    if (isTestMode) return;
     await fetch("/api/tasks", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -143,6 +163,7 @@ export default function DeskPage() {
     if (newStatus === "done") {
       showToast("タスクを完了しました！");
     }
+    if (isTestMode) return;
     try {
       await fetch("/api/tasks", {
         method: "PATCH",
