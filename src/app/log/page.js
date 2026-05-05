@@ -48,7 +48,7 @@ const TEMPLATES = {
 };
 
 export default function LogPage() {
-  const { isTeacherMode, showToast } = useAppContext();
+  const { isTeacherMode, showToast, isTestMode } = useAppContext();
   
   // Student State
   const [activeTemplate, setActiveTemplate] = useState("KPT");
@@ -85,8 +85,19 @@ export default function LogPage() {
       submitContent = parts.join("\n\n");
     }
 
-    setIsSubmitting(true);
-    
+    if (isTestMode) {
+      setTimeout(() => {
+        setIsSubmitting(false);
+        if (isTeacherMode) {
+          setTeacherContent("");
+        } else {
+          setFormData({});
+        }
+        showToast("テストモード: Notionには送信されませんでした");
+      }, 500);
+      return;
+    }
+
     try {
       const res = await fetch("/api/logs", {
         method: "POST",
@@ -105,9 +116,13 @@ export default function LogPage() {
           setFormData({});
           showToast("Notionへログを保存しました！");
         }
+      } else {
+        const errData = await res.json();
+        throw new Error(errData.error || "保存に失敗しました");
       }
     } catch (error) {
       console.error("Error submitting log:", error);
+      showToast(`エラー: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }

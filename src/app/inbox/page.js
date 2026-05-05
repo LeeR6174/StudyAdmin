@@ -27,7 +27,7 @@ export default function InboxPage() {
         { id: "test4", name: "美容室の予約を入れる", memo: "来週の土曜の午後で", deadline: "", location: "スマホ", isCompleted: false },
       ];
       setItems(dummy);
-      setAllDbTaskCount(dummy.filter(i => !i.isCompleted).length);
+      setInboxCount(dummy.filter(i => !i.isCompleted).length);
       setIsLoading(false);
       return;
     }
@@ -72,7 +72,7 @@ export default function InboxPage() {
       setDeadline("");
       setLocation("");
       setItems((prev) => [created, ...prev]);
-      setAllDbTaskCount(prev => prev + 1);
+      setInboxCount(prev => prev + 1);
       showToast("テストデータを作成しました！");
       setIsSubmitting(false);
       return;
@@ -148,10 +148,10 @@ export default function InboxPage() {
         {/* Entry Form */}
         <section className={styles.section} style={{ marginBottom: "24px" }}>
           <h2 className={styles.sectionTitle}><Database size={18} /> 新規追加</h2>
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column" }}>
             
-            <div>
-              <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "4px", display: "block" }}>名前 (Title)</label>
+            <div className={styles.inputGroup}>
+              <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block" }}>名前 (Title)</label>
               <input 
                 type="text" 
                 value={name} 
@@ -162,9 +162,9 @@ export default function InboxPage() {
               />
             </div>
 
-            <div style={{ display: "flex", gap: "12px" }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "4px" }}><Calendar size={14} /> 期限</label>
+            <div className={styles.inputRow}>
+              <div style={{ flex: 1 }} className={styles.inputGroup}>
+                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}><Calendar size={14} /> 期限</label>
                 <input 
                   type="date" 
                   value={deadline} 
@@ -172,8 +172,8 @@ export default function InboxPage() {
                   className={styles.input}
                 />
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "4px" }}><MapPin size={14} /> 場所</label>
+              <div style={{ flex: 1 }} className={styles.inputGroup}>
+                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}><MapPin size={14} /> 場所</label>
                 <input 
                   type="text"
                   value={location} 
@@ -184,8 +184,8 @@ export default function InboxPage() {
               </div>
             </div>
 
-            <div>
-              <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "4px", display: "block" }}>メモ</label>
+            <div className={styles.inputGroup}>
+              <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block" }}>メモ</label>
               <textarea 
                 value={memo} 
                 onChange={(e) => setMemo(e.target.value)} 

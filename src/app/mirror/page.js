@@ -6,17 +6,30 @@ import { Search, Filter, Calendar, Loader2 } from "lucide-react";
 import { useAppContext } from "@/context/AppProvider";
 
 export default function MirrorPage() {
-  const { isTeacherMode } = useAppContext();
+  const { isTeacherMode, isTestMode } = useAppContext();
   const [logs, setLogs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchLogs() {
+      if (isTestMode) {
+        const dummy = [
+          { id: "d1", date: new Date().toISOString(), type: "KPT", content: "## Keep\n集中できた\n\n## Problem\nスマホを見た\n\n## Try\nスマホを隠す", isTeacherLog: false },
+          { id: "d2", date: new Date(Date.now() - 86400000).toISOString(), type: "コーチメモ", content: "よく頑張っています。次はタスクの細分化を意識しましょう。", isTeacherLog: true },
+        ];
+        const formatted = dummy.map(log => ({
+          ...log,
+          dateFormatted: new Date(log.date).toLocaleDateString("ja-JP", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
+        }));
+        setLogs(formatted);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const res = await fetch("/api/logs");
         if (res.ok) {
           const data = await res.json();
-          // Format dates
           const formattedLogs = data.map(log => {
             const dateObj = new Date(log.date);
             const formattedDate = dateObj.toLocaleDateString("ja-JP", { 

@@ -6,7 +6,10 @@ const notion = new Client({ auth: process.env.NOTION_API_KEY });
 const databaseId = process.env.NOTION_LOGS_DB_ID;
 
 export async function GET() {
-  if (!databaseId) return NextResponse.json({ error: "Missing DB ID" }, { status: 500 });
+  if (!databaseId) {
+    console.error("NOTION_LOGS_DB_ID is not defined in environment variables");
+    return NextResponse.json({ error: "Configuration Error: Missing NOTION_LOGS_DB_ID" }, { status: 500 });
+  }
 
   try {
     const response = await notion.databases.query({
@@ -30,7 +33,10 @@ export async function GET() {
 }
 
 export async function POST(request) {
-  if (!databaseId) return NextResponse.json({ error: "Missing DB ID" }, { status: 500 });
+  if (!databaseId) {
+    console.error("NOTION_LOGS_DB_ID is not defined in environment variables");
+    return NextResponse.json({ error: "Configuration Error: Missing NOTION_LOGS_DB_ID" }, { status: 500 });
+  }
 
   try {
     const { content, isTeacherLog } = await request.json();
