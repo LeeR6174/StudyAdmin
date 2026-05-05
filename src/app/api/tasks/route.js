@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { Client } from "@notionhq/client";
+const { Client } = require("@notionhq/client");
 
-// Initialize Notion Client
-const notion = new Client({ auth: process.env.NOTION_API_KEY });
+// Initialize Notion Client helper
+const getNotionClient = () => new Client({ auth: process.env.NOTION_API_KEY });
 const databaseId = process.env.NOTION_TASKS_DB_ID;
 
 export async function GET() {
@@ -12,6 +12,7 @@ export async function GET() {
   }
 
   try {
+    const notion = getNotionClient();
     const response = await notion.databases.query({
       database_id: databaseId,
       sorts: [{ timestamp: "created_time", direction: "descending" }],
@@ -46,6 +47,7 @@ export async function POST(request) {
   }
 
   try {
+    const notion = getNotionClient();
     const { title, project, status = "未アサイン" } = await request.json();
 
     const response = await notion.pages.create({
@@ -73,6 +75,7 @@ export async function POST(request) {
 
 export async function PATCH(request) {
   try {
+    const notion = getNotionClient();
     const { id, status } = await request.json();
     let notionStatus = "未アサイン";
     if (status === "done") notionStatus = "完了";

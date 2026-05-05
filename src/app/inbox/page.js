@@ -17,13 +17,68 @@ export default function InboxPage() {
   const [deadline, setDeadline] = useState("");
   const [location, setLocation] = useState("");
 
+  const formatDeadline = (dateStr) => {
+    if (!dateStr) return "";
+    try {
+      const d = new Date(dateStr);
+      const month = d.getMonth() + 1;
+      const date = d.getDate();
+      const hours = d.getHours().toString().padStart(2, "0");
+      const minutes = d.getMinutes().toString().padStart(2, "0");
+      
+      // If it's a date only (time is 00:00 and not specified), or just to be safe
+      // datetime-local usually includes T
+      if (dateStr.includes("T")) {
+        return `${month}/${date} ${hours}:${minutes}`;
+      }
+      return `${month}/${date}`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  const setQuickDeadline = (type) => {
+    const now = new Date();
+    let target = new Date(now);
+
+    switch (type) {
+      case "30m":
+        target.setMinutes(now.getMinutes() + 30);
+        break;
+      case "1h":
+        target.setHours(now.getHours() + 1);
+        break;
+      case "nextHour":
+        target.setHours(now.getHours() + 1, 0, 0, 0);
+        break;
+      case "18:00":
+        target.setHours(18, 0, 0, 0);
+        break;
+      case "tomorrow8:50":
+        target.setDate(now.getDate() + 1);
+        target.setHours(8, 50, 0, 0);
+        break;
+      default:
+        return;
+    }
+
+    // Format to YYYY-MM-DDTHH:mm for datetime-local
+    const yyyy = target.getFullYear();
+    const mm = (target.getMonth() + 1).toString().padStart(2, "0");
+    const dd = target.getDate().toString().padStart(2, "0");
+    const hh = target.getHours().toString().padStart(2, "0");
+    const min = target.getMinutes().toString().padStart(2, "0");
+    
+    setDeadline(`${yyyy}-${mm}-${dd}T${hh}:${min}`);
+  };
+
   const fetchItems = async () => {
     setIsLoading(true);
     if (isTestMode) {
       const dummy = [
-        { id: "test1", name: "洗剤のストックを買う", memo: "特売の詰め替え用を2つ", deadline: new Date().toISOString().split("T")[0], location: "スーパー", isCompleted: false },
-        { id: "test2", name: "〇〇さんにLINEを返す", memo: "今週末の予定について", deadline: new Date().toISOString().split("T")[0], location: "スマホ", isCompleted: false },
-        { id: "test3", name: "市役所で書類の手続き", memo: "マイナンバーカードと印鑑を持参", deadline: new Date(Date.now() + 86400000).toISOString().split("T")[0], location: "市役所", isCompleted: false },
+        { id: "test1", name: "洗剤のストックを買う", memo: "特売の詰め替え用を2つ", deadline: new Date().toISOString().substring(0, 16), location: "スーパー", isCompleted: false },
+        { id: "test2", name: "〇〇さんにLINEを返す", memo: "今週末の予定について", deadline: new Date().toISOString().substring(0, 16), location: "スマホ", isCompleted: false },
+        { id: "test3", name: "市役所で書類の手手続き", memo: "マイナンバーカードと印鑑を持参", deadline: new Date(Date.now() + 86400000).toISOString().substring(0, 16), location: "市役所", isCompleted: false },
         { id: "test4", name: "美容室の予約を入れる", memo: "来週の土曜の午後で", deadline: "", location: "スマホ", isCompleted: false },
       ];
       setItems(dummy);
@@ -156,29 +211,36 @@ export default function InboxPage() {
                 type="text" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)} 
-                placeholder="タスク名やアイデア..." 
+                placeholder="タスクを記入" 
                 className={styles.input} 
                 required 
               />
             </div>
 
             <div className={styles.inputRow}>
-              <div style={{ flex: 1 }} className={styles.inputGroup}>
+              <div style={{ flex: 1.3 }} className={styles.inputGroup}>
                 <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}><Calendar size={14} /> 期限</label>
                 <input 
-                  type="date" 
+                  type="datetime-local" 
                   value={deadline} 
                   onChange={(e) => setDeadline(e.target.value)} 
                   className={styles.input}
                 />
+                <div className={styles.quickBtnContainer}>
+                  <button type="button" onClick={() => setQuickDeadline("30m")} className={styles.quickBtn}>+30分</button>
+                  <button type="button" onClick={() => setQuickDeadline("1h")} className={styles.quickBtn}>+1h</button>
+                  <button type="button" onClick={() => setQuickDeadline("nextHour")} className={styles.quickBtn}>次時</button>
+                  <button type="button" onClick={() => setQuickDeadline("18:00")} className={styles.quickBtn}>18:00</button>
+                  <button type="button" onClick={() => setQuickDeadline("tomorrow8:50")} className={styles.quickBtn}>明日8:50</button>
+                </div>
               </div>
-              <div style={{ flex: 1 }} className={styles.inputGroup}>
+              <div style={{ flex: 0.7 }} className={styles.inputGroup}>
                 <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}><MapPin size={14} /> 場所</label>
                 <input 
                   type="text"
                   value={location} 
                   onChange={(e) => setLocation(e.target.value)} 
-                  placeholder="例: スーパー、〇〇駅..."
+                  placeholder="場所..."
                   className={styles.input}
                 />
               </div>
@@ -223,7 +285,7 @@ export default function InboxPage() {
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "flex-start" }}>
                   <div style={{ flex: 1, paddingRight: "12px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
-                      {item.deadline && <span style={{ fontSize: "0.75rem", color: "var(--accent-primary)", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}><Calendar size={12}/>{item.deadline}</span>}
+                      {item.deadline && <span style={{ fontSize: "0.75rem", color: "var(--accent-primary)", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}><Calendar size={12}/>{formatDeadline(item.deadline)}</span>}
                       {item.location && (
                         <a 
                           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location)}`} 
