@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import styles from "./page.module.css";
-import { Lock, Plus, Target, CheckCircle2, X, UserCog, Loader2, MessageSquare, ArrowUpRight, Settings } from "lucide-react";
+import { Lock, Plus, Target, CheckCircle2, X, UserCog, Loader2, MessageSquare, ArrowUpRight, Settings, Database, CheckSquare, Square } from "lucide-react";
 import { useAppContext } from "@/context/AppProvider";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import Link from "next/link";
@@ -19,6 +19,7 @@ export default function DeskPage() {
   const [newGoalTitle, setNewGoalTitle] = useState("");
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [selectedGoalTitle, setSelectedGoalTitle] = useState("");
+  const [showDoneGoals, setShowDoneGoals] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -183,6 +184,11 @@ export default function DeskPage() {
           <h1 className={styles.title}>{isTeacherMode ? "コーチデスク" : "今日の宿題"}</h1>
           <p className={styles.subtitle}>{isTeacherMode ? "コーチング・ループの実践" : "一つずつ確実に終わらせよう"}</p>
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Link href="/alldb" className={styles.iconBtn} style={{ background: 'var(--bg-surface)', boxShadow: 'var(--shadow-sm)', borderRadius: '50%', padding: '10px' }} title="ALL DBへ">
+            <Database size={22} color="var(--accent-primary)" />
+          </Link>
+        </div>
       </header>
 
 
@@ -214,12 +220,52 @@ export default function DeskPage() {
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}><Target size={18} /> Step 2: 大目標の管理とタスク細分化</h2>
               <div className={styles.goalList}>
-                {bigGoals.map(goal => (
-                  <div key={goal} className={`${styles.goalItem} ${selectedGoalTitle === goal ? styles.selectedGoal : ""}`} onClick={() => setSelectedGoalTitle(goal)}>
-                    {goal}
-                  </div>
-                ))}
+                {bigGoals.filter(goal => {
+                  const goalTask = tasks.find(t => t.project === goal && t.title.startsWith("【大目標】"));
+                  return !goalTask || goalTask.status !== "done";
+                }).map(goal => {
+                  const goalTask = tasks.find(t => t.project === goal && t.title.startsWith("【大目標】"));
+                  return (
+                    <div key={goal} className={`${styles.goalItem} ${selectedGoalTitle === goal ? styles.selectedGoal : ""}`} onClick={() => setSelectedGoalTitle(goal)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {goalTask && (
+                        <button onClick={(e) => { e.stopPropagation(); updateTaskStatus(goalTask.id, "done"); }} style={{ background: 'none', border: 'none', padding: 0, display: 'flex', color: 'var(--text-muted)' }}>
+                          <Square size={16} />
+                        </button>
+                      )}
+                      {goal}
+                    </div>
+                  );
+                })}
               </div>
+
+              {bigGoals.filter(goal => {
+                const goalTask = tasks.find(t => t.project === goal && t.title.startsWith("【大目標】"));
+                return goalTask && goalTask.status === "done";
+              }).length > 0 && (
+                <div style={{ marginTop: '16px' }}>
+                  <button onClick={() => setShowDoneGoals(!showDoneGoals)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: 0 }}>
+                    {showDoneGoals ? "完了した大目標を隠す" : `完了した大目標 (${bigGoals.filter(g => tasks.find(t => t.project === g && t.title.startsWith("【大目標】"))?.status === "done").length})`}
+                  </button>
+                  {showDoneGoals && (
+                    <div className={styles.goalList} style={{ marginTop: '8px', opacity: 0.7 }}>
+                      {bigGoals.filter(goal => {
+                        const goalTask = tasks.find(t => t.project === goal && t.title.startsWith("【大目標】"));
+                        return goalTask && goalTask.status === "done";
+                      }).map(goal => {
+                        const goalTask = tasks.find(t => t.project === goal && t.title.startsWith("【大目標】"));
+                        return (
+                          <div key={goal} className={`${styles.goalItem} ${selectedGoalTitle === goal ? styles.selectedGoal : ""}`} onClick={() => setSelectedGoalTitle(goal)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button onClick={(e) => { e.stopPropagation(); updateTaskStatus(goalTask.id, "todo"); }} style={{ background: 'none', border: 'none', padding: 0, display: 'flex', color: 'var(--accent-primary)' }}>
+                              <CheckSquare size={16} />
+                            </button>
+                            <del>{goal}</del>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
               <form onSubmit={addBigGoal} className={styles.addForm}>
                 <input type="text" value={newGoalTitle} onChange={(e) => setNewGoalTitle(e.target.value)} placeholder="新しい大目標を追加..." className={styles.input} />
                 <button type="submit" className={styles.iconSubmitBtn}><Plus size={20} /></button>

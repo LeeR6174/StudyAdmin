@@ -15,7 +15,6 @@ export default function AllDbPage() {
   const [name, setName] = useState("");
   const [tag, setTag] = useState("タスク");
   const [reflection, setReflection] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]); // Default to today
 
   const fetchItems = async () => {
     setIsLoading(true);
@@ -58,7 +57,7 @@ export default function AllDbPage() {
     setIsSubmitting(true);
     
     if (isTestMode) {
-      const created = { id: Date.now().toString(), name, tag, reflection, date, isCompleted: false };
+      const created = { id: Date.now().toString(), name, tag, reflection, isCompleted: false };
       setName("");
       setReflection("");
       setItems((prev) => [created, ...prev]);
@@ -69,7 +68,7 @@ export default function AllDbPage() {
     }
 
     try {
-      const payload = { name, tag, reflection, date };
+      const payload = { name, tag, reflection };
       const res = await fetch("/api/alldb", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -118,7 +117,7 @@ export default function AllDbPage() {
           <h1 className={styles.title}>ALL DB</h1>
           <p className={styles.subtitle}>すべてのデータを集約</p>
         </div>
-        <button className={styles.iconBtn} onClick={fetchItems} disabled={isLoading}>
+        <button className={styles.iconBtn} onClick={fetchItems} disabled={isLoading} style={{ marginRight: '80px' }}>
           <RefreshCw size={24} className={isLoading ? styles.spin : ""} />
         </button>
       </header>
@@ -154,16 +153,6 @@ export default function AllDbPage() {
                   <option value="アイデア">アイデア</option>
                 </select>
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "4px", display: "block" }}>日付 (Date)</label>
-                <input 
-                  type="date" 
-                  value={date} 
-                  onChange={(e) => setDate(e.target.value)} 
-                  className={styles.input} 
-                  required
-                />
-              </div>
             </div>
 
             <div>
@@ -194,17 +183,17 @@ export default function AllDbPage() {
               <Loader2 className={styles.spin} size={24} />
               <p>データを取得中...</p>
             </div>
-          ) : items.filter(i => i.tag === "タスク").length === 0 ? (
+          ) : items.filter(i => i.tag === "タスク" && !i.isCompleted).length === 0 ? (
             <div className={styles.emptyState}>
               <Database size={48} className={styles.emptyIcon} />
               <p>未完了のタスクはありません。</p>
             </div>
           ) : (
-            items.filter(i => i.tag === "タスク").map((item) => (
+            items.filter(i => i.tag === "タスク" && !i.isCompleted).map((item) => (
               <div key={item.id} className={styles.studentTaskCard} style={{ flexDirection: "column", alignItems: "flex-start", gap: "12px", padding: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "flex-start" }}>
                   <div>
-                    <div style={{ fontSize: "0.75rem", color: "var(--accent-primary)", marginBottom: "4px", fontWeight: 600 }}>{item.date}</div>
+                    {item.date && <div style={{ fontSize: "0.75rem", color: "var(--accent-primary)", marginBottom: "4px", fontWeight: 600 }}>{item.date}</div>}
                     <div style={{ fontSize: "1rem", fontWeight: 500 }}>{item.name}</div>
                   </div>
                   <button 

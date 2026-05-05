@@ -12,21 +12,11 @@ export async function GET() {
     const response = await notion.databases.query({
       database_id: databaseId,
       filter: {
-        and: [
-          {
-            property: "完了",
-            checkbox: {
-              equals: false,
-            },
-          },
-          {
-            or: [
-              { property: "タグ", select: { equals: "タスク" } },
-              { property: "タグ", select: { equals: "アイデア" } },
-              { property: "タグ", select: { equals: "メモ" } },
-            ]
-          }
-        ],
+        or: [
+          { property: "タグ", select: { equals: "タスク" } },
+          { property: "タグ", select: { equals: "アイデア" } },
+          { property: "タグ", select: { equals: "メモ" } },
+        ]
       },
       sorts: [{ property: "日付", direction: "descending" }],
     });

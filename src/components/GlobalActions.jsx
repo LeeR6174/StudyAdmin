@@ -16,18 +16,24 @@ export default function GlobalActions() {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
+  const handlePasswordChange = (e) => {
+    const val = e.target.value;
+    setPassword(val);
+    setErrorMsg("");
+    if (val.length === 3) {
+      if (toggleTeacherMode(val)) {
+        setShowPasswordDialog(false);
+        setPassword("");
+      } else {
+        setErrorMsg("パスワードが違います");
+      }
+    }
+  };
+
   const handleToggleMode = (e) => {
     e.preventDefault();
     if (isTeacherMode) {
       toggleTeacherMode();
-    } else {
-      if (toggleTeacherMode(password)) {
-        setShowPasswordDialog(false);
-        setPassword("");
-        setErrorMsg("");
-      } else {
-        setErrorMsg("パスワードが違います");
-      }
     }
   };
 
@@ -61,7 +67,7 @@ export default function GlobalActions() {
                 <button onClick={() => setShowPasswordDialog(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
               </div>
               <form onSubmit={handleToggleMode}>
-                <input type="password" inputMode="numeric" pattern="[0-9]*" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="パスワード (555)" className={styles.input} autoFocus />
+                <input type="password" inputMode="numeric" pattern="[0-9]*" value={password} onChange={handlePasswordChange} placeholder="パスワード (555)" className={styles.input} autoFocus />
                 {errorMsg && <p className={styles.error}>{errorMsg}</p>}
                 <button type="submit" className={styles.primaryBtn}>ロック解除</button>
               </form>
