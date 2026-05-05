@@ -11,22 +11,15 @@ export async function GET() {
   try {
     const response = await notion.databases.query({
       database_id: databaseId,
-      filter: {
-        or: [
-          { property: "タグ", select: { equals: "タスク" } },
-          { property: "タグ", select: { equals: "アイデア" } },
-          { property: "タグ", select: { equals: "メモ" } },
-        ]
-      },
-      sorts: [{ property: "日付", direction: "descending" }],
+      sorts: [{ timestamp: "created_time", direction: "descending" }],
     });
 
     const items = response.results.map((page) => ({
       id: page.id,
       name: page.properties.名前?.title[0]?.plain_text || "無題",
-      tag: page.properties.タグ?.select?.name || "",
-      reflection: page.properties.振り返り?.rich_text[0]?.plain_text || "",
-      date: page.properties.日付?.date?.start || "",
+      memo: page.properties.メモ?.rich_text[0]?.plain_text || "",
+      deadline: page.properties.期限?.date?.start || "",
+      location: page.properties.場所?.rich_text[0]?.plain_text || "",
       isCompleted: page.properties.完了?.checkbox || false,
     }));
 
@@ -41,60 +34,36 @@ export async function POST(request) {
   if (!databaseId) return NextResponse.json({ error: "Missing DB ID" }, { status: 500 });
 
   try {
-    const { name, tag, reflection, date } = await request.json();
+    const { name, memo, deadline, location } = await request.json();
 
     const properties = {
       名前: { title: [{ text: { content: name || "無題" } }] },
-      タグ: { select: { name: tag } },
       完了: { checkbox: false },
     };
 
-    if (reflection) {
-      properties.振り返り = { rich_text: [{ text: { content: reflection } }] };
+    if (memo) {
+      properties.メモ = { rich_text: [{ text: { content: memo } }] };
     }
 
-    if (date) {
-      properties.日付 = { date: { start: date } };
+    if (deadline) {
+      properties.期限 = { date: { start: deadline } };
     }
 
-    const children = [];
-    if (tag === "タスク") {
-      children.push(
-        {
-          object: 'block',
-          type: 'heading_2',
-          heading_2: { rich_text: [{ type: 'text', text: { content: '要件' } }] }
-        },
-        {
-          object: 'block',
-          type: 'paragraph',
-          paragraph: { rich_text: [{ type: 'text', text: { content: reflection || "（特になし）" } }] }
-        },
-        {
-          object: 'block',
-          type: 'heading_2',
-          heading_2: { rich_text: [{ type: 'text', text: { content: '回答' } }] }
-        },
-        {
-          object: 'block',
-          type: 'paragraph',
-          paragraph: { rich_text: [] }
-        }
-      );
+    if (location) {
+      properties.場所 = { rich_text: [{ text: { content: location } }] };
     }
 
     const response = await notion.pages.create({
       parent: { database_id: databaseId },
       properties,
-      children: children.length > 0 ? children : undefined,
     });
 
     const newItem = {
       id: response.id,
       name,
-      tag,
-      reflection,
-      date,
+      memo,
+      deadline,
+      location,
       isCompleted: false,
     };
 

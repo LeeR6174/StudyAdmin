@@ -34,7 +34,7 @@ export function AppProvider({ children }) {
         const res = await fetch("/api/alldb");
         if (res.ok) {
           const data = await res.json();
-          setAllDbTaskCount(data.filter(i => i.tag === "タスク").length);
+          setAllDbTaskCount(data.filter(i => !i.isCompleted).length);
         }
       } catch (e) {}
     };

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import styles from "../page.module.css";
-import { Database, Plus, Loader2, CheckSquare, Square, RefreshCw } from "lucide-react";
+import { Database, Plus, Loader2, CheckSquare, Square, RefreshCw, Bell, MapPin, Calendar } from "lucide-react";
 import { useAppContext } from "@/context/AppProvider";
 
 export default function AllDbPage() {
@@ -13,21 +13,21 @@ export default function AllDbPage() {
 
   // Form states
   const [name, setName] = useState("");
-  const [tag, setTag] = useState("タスク");
-  const [reflection, setReflection] = useState("");
+  const [memo, setMemo] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [location, setLocation] = useState("");
 
   const fetchItems = async () => {
     setIsLoading(true);
     if (isTestMode) {
       const dummy = [
-        { id: "test1", name: "Notion連携の新機能", tag: "アイデア", reflection: "グラフ表示機能を追加したら面白そう", date: new Date().toISOString().split("T")[0], isCompleted: false },
-        { id: "test2", name: "バグ修正: アニメーション", tag: "タスク", reflection: "完了時のフェードアウトを直す", date: new Date().toISOString().split("T")[0], isCompleted: false },
-        { id: "test3", name: "買い物リスト", tag: "メモ", reflection: "牛乳、卵、コーヒー豆", date: new Date(Date.now() - 86400000).toISOString().split("T")[0], isCompleted: false },
-        { id: "test4", name: "読書: Clean Code", tag: "タスク", reflection: "3章まで読んで要点をまとめる", date: new Date().toISOString().split("T")[0], isCompleted: false },
-        { id: "test5", name: "ブログのネタ", tag: "アイデア", reflection: "Next.js 14のApp Routerについて書く", date: new Date(Date.now() - 86400000 * 2).toISOString().split("T")[0], isCompleted: false },
+        { id: "test1", name: "洗剤のストックを買う", memo: "特売の詰め替え用を2つ", deadline: new Date().toISOString().split("T")[0], location: "スーパー", isCompleted: false },
+        { id: "test2", name: "〇〇さんにLINEを返す", memo: "今週末の予定について", deadline: new Date().toISOString().split("T")[0], location: "スマホ", isCompleted: false },
+        { id: "test3", name: "市役所で書類の手続き", memo: "マイナンバーカードと印鑑を持参", deadline: new Date(Date.now() + 86400000).toISOString().split("T")[0], location: "市役所", isCompleted: false },
+        { id: "test4", name: "美容室の予約を入れる", memo: "来週の土曜の午後で", deadline: "", location: "スマホ", isCompleted: false },
       ];
       setItems(dummy);
-      setAllDbTaskCount(dummy.filter(i => i.tag === "タスク").length);
+      setAllDbTaskCount(dummy.filter(i => !i.isCompleted).length);
       setIsLoading(false);
       return;
     }
@@ -37,7 +37,7 @@ export default function AllDbPage() {
       if (res.ok) {
         const data = await res.json();
         setItems(data);
-        setAllDbTaskCount(data.filter(i => i.tag === "タスク").length);
+        setAllDbTaskCount(data.filter(i => !i.isCompleted).length);
       }
     } catch (error) {
       console.error("Fetch error", error);
@@ -50,6 +50,15 @@ export default function AllDbPage() {
     fetchItems();
   }, []);
 
+  const handleSendToReminder = (item) => {
+    if (!item.deadline) {
+      showToast("期限が設定されていないため、時間指定でリマインダーに送れません。");
+      return;
+    }
+    const url = `shortcuts://x-callback-url/run-shortcut?name=StudyAdminReminder&input=text&text=${encodeURIComponent(item.name + "||" + item.deadline)}`;
+    window.location.href = url;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -57,18 +66,20 @@ export default function AllDbPage() {
     setIsSubmitting(true);
     
     if (isTestMode) {
-      const created = { id: Date.now().toString(), name, tag, reflection, isCompleted: false };
+      const created = { id: Date.now().toString(), name, memo, deadline, location, isCompleted: false };
       setName("");
-      setReflection("");
+      setMemo("");
+      setDeadline("");
+      setLocation("");
       setItems((prev) => [created, ...prev]);
-      if (tag === "タスク") setAllDbTaskCount(prev => prev + 1);
+      setAllDbTaskCount(prev => prev + 1);
       showToast("テストデータを作成しました！");
       setIsSubmitting(false);
       return;
     }
 
     try {
-      const payload = { name, tag, reflection };
+      const payload = { name, memo, deadline, location };
       const res = await fetch("/api/alldb", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,9 +89,11 @@ export default function AllDbPage() {
       if (res.ok) {
         const created = await res.json();
         setName("");
-        setReflection("");
+        setMemo("");
+        setDeadline("");
+        setLocation("");
         setItems((prev) => [created, ...prev]);
-        if (tag === "タスク") setAllDbTaskCount(prev => prev + 1);
+        setAllDbTaskCount(prev => prev + 1);
         showToast("データを作成しました！");
       }
     } catch (error) {
@@ -92,11 +105,8 @@ export default function AllDbPage() {
 
   const handleComplete = async (id) => {
     // Optimistic update: remove from the uncompleted list
-    const itemToComplete = items.find(i => i.id === id);
     setItems((prev) => prev.filter((item) => item.id !== id));
-    if (itemToComplete?.tag === "タスク") {
-      setAllDbTaskCount(prev => prev > 0 ? prev - 1 : 0);
-    }
+    setAllDbTaskCount(prev => prev > 0 ? prev - 1 : 0);
     showToast("完了にしました！");
     if (isTestMode) return;
     try {
@@ -144,25 +154,32 @@ export default function AllDbPage() {
 
             <div style={{ display: "flex", gap: "12px" }}>
               <div style={{ flex: 1 }}>
-                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "4px", display: "block" }}>タグ</label>
-                <select 
-                  value={tag} 
-                  onChange={(e) => setTag(e.target.value)} 
+                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "4px" }}><Calendar size={14} /> 期限</label>
+                <input 
+                  type="date" 
+                  value={deadline} 
+                  onChange={(e) => setDeadline(e.target.value)} 
                   className={styles.input}
-                >
-                  <option value="タスク">タスク</option>
-                  <option value="メモ">メモ</option>
-                  <option value="アイデア">アイデア</option>
-                </select>
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "4px" }}><MapPin size={14} /> 場所</label>
+                <input 
+                  type="text"
+                  value={location} 
+                  onChange={(e) => setLocation(e.target.value)} 
+                  placeholder="例: スーパー、〇〇駅..."
+                  className={styles.input}
+                />
               </div>
             </div>
 
             <div>
-              <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "4px", display: "block" }}>要件 / 詳細メモ</label>
+              <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "4px", display: "block" }}>メモ</label>
               <textarea 
-                value={reflection} 
-                onChange={(e) => setReflection(e.target.value)} 
-                placeholder="タスクの具体的な要件や、メモしておきたいことを記入..." 
+                value={memo} 
+                onChange={(e) => setMemo(e.target.value)} 
+                placeholder="補足情報など..." 
                 className={styles.input}
                 style={{ minHeight: "80px", resize: "vertical" }}
               />
@@ -185,17 +202,29 @@ export default function AllDbPage() {
               <Loader2 className={styles.spin} size={24} />
               <p>データを取得中...</p>
             </div>
-          ) : items.filter(i => i.tag === "タスク" && !i.isCompleted).length === 0 ? (
+          ) : items.filter(i => !i.isCompleted).length === 0 ? (
             <div className={styles.emptyState}>
               <Database size={48} className={styles.emptyIcon} />
               <p>未完了のタスクはありません。</p>
             </div>
           ) : (
-            items.filter(i => i.tag === "タスク" && !i.isCompleted).map((item) => (
+            items.filter(i => !i.isCompleted).map((item) => (
               <div key={item.id} className={styles.studentTaskCard} style={{ flexDirection: "column", alignItems: "flex-start", gap: "12px", padding: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "flex-start" }}>
-                  <div>
-                    {item.date && <div style={{ fontSize: "0.75rem", color: "var(--accent-primary)", marginBottom: "4px", fontWeight: 600 }}>{item.date}</div>}
+                  <div style={{ flex: 1, paddingRight: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
+                      {item.deadline && <span style={{ fontSize: "0.75rem", color: "var(--accent-primary)", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}><Calendar size={12}/>{item.deadline}</span>}
+                      {item.location && (
+                        <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location)}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{ fontSize: "0.7rem", backgroundColor: "var(--bg-surface)", padding: "2px 6px", borderRadius: "12px", border: "1px solid var(--border-color)", display: "flex", alignItems: "center", gap: "4px", color: "inherit", textDecoration: "none" }}
+                        >
+                          <MapPin size={10}/>{item.location}
+                        </a>
+                      )}
+                    </div>
                     <div style={{ fontSize: "1rem", fontWeight: 500 }}>{item.name}</div>
                   </div>
                   <button 
@@ -204,11 +233,21 @@ export default function AllDbPage() {
                     aria-label="完了にする"
                   ></button>
                 </div>
-                {item.reflection && (
-                  <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", backgroundColor: "rgba(0,0,0,0.2)", padding: "10px", borderRadius: "8px", width: "100%", marginTop: "12px", border: "1px solid var(--border-color)" }}>
-                    {item.reflection}
+                {item.memo && (
+                  <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", backgroundColor: "rgba(0,0,0,0.2)", padding: "10px", borderRadius: "8px", width: "100%", marginTop: "4px", border: "1px solid var(--border-color)" }}>
+                    {item.memo}
                   </div>
                 )}
+                
+                {/* Reminders integration */}
+                <div style={{ width: "100%", display: "flex", justifyContent: "flex-end", marginTop: "4px" }}>
+                  <button 
+                    onClick={() => handleSendToReminder(item)}
+                    style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.8rem", color: "var(--accent-primary)", background: "transparent", border: "1px solid var(--accent-primary)", padding: "4px 10px", borderRadius: "16px", cursor: "pointer" }}
+                  >
+                    <Bell size={14} /> iOSリマインダーへ
+                  </button>
+                </div>
               </div>
             ))
           )}
