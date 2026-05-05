@@ -122,6 +122,10 @@ export default function DeskPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: newTaskTitle, project: selectedGoalTitle, status: "未アサイン" })
       });
+      if (res.ok) {
+        const created = await res.json();
+        setTasks(prev => prev.map(t => t.id === tempId ? { ...created, isExecuting: false } : t));
+        showToast("タスクをストックしました");
       } else {
         const errData = await res.json();
         throw new Error(errData.error || "サーバーエラーが発生しました");
