@@ -8,7 +8,7 @@ import { useAppContext } from "@/context/AppProvider";
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { allDbTaskCount } = useAppContext();
+  const { inboxCount } = useAppContext();
 
   const navItems = [
     {
@@ -28,9 +28,9 @@ export default function BottomNav() {
     },
     {
       name: "Inbox",
-      path: "/alldb",
+      path: "/inbox",
       icon: Database,
-      badge: allDbTaskCount > 0 ? allDbTaskCount : null,
+      badge: inboxCount > 0 ? inboxCount : null,
     },
   ];
 

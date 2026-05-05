@@ -100,10 +100,10 @@ export default function LogPage() {
       if (res.ok) {
         if (isTeacherMode) {
           setTeacherContent("");
-          showToast("評価を記録しました");
+          showToast("Notionへ評価を記録しました！");
         } else {
           setFormData({});
-          showToast("ログを保存しました");
+          showToast("Notionへログを保存しました！");
         }
       }
     } catch (error) {

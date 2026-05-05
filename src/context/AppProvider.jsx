@@ -10,7 +10,7 @@ export function AppProvider({ children }) {
   const [isTeacherMode, setIsTeacherMode] = useState(false);
   const [toast, setToast] = useState(null);
   const [isTestMode, setIsTestMode] = useState(false);
-  const [allDbTaskCount, setAllDbTaskCount] = useState(0);
+  const [inboxCount, setInboxCount] = useState(0);
 
   // Load state from local storage on mount
   useEffect(() => {
@@ -25,20 +25,20 @@ export function AppProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const fetchAllDbCount = async () => {
+    const fetchInboxCount = async () => {
       if (isTestMode) {
-        setAllDbTaskCount(2);
+        setInboxCount(2);
         return;
       }
       try {
-        const res = await fetch("/api/alldb");
+        const res = await fetch("/api/inbox");
         if (res.ok) {
           const data = await res.json();
-          setAllDbTaskCount(data.filter(i => !i.isCompleted).length);
+          setInboxCount(data.filter(i => !i.isCompleted).length);
         }
       } catch (e) {}
     };
-    fetchAllDbCount();
+    fetchInboxCount();
   }, [isTestMode]);
 
   const toggleTeacherMode = (password) => {
@@ -72,7 +72,7 @@ export function AppProvider({ children }) {
   };
 
   return (
-    <AppContext.Provider value={{ isTeacherMode, toggleTeacherMode, showToast, isTestMode, toggleTestMode, allDbTaskCount, setAllDbTaskCount }}>
+    <AppContext.Provider value={{ isTeacherMode, toggleTeacherMode, showToast, isTestMode, toggleTestMode, inboxCount, setInboxCount }}>
       {children}
       
       {/* Global Toast */}

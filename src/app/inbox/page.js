@@ -5,8 +5,8 @@ import styles from "../page.module.css";
 import { Database, Plus, Loader2, CheckSquare, Square, RefreshCw, Bell, MapPin, Calendar } from "lucide-react";
 import { useAppContext } from "@/context/AppProvider";
 
-export default function AllDbPage() {
-  const { showToast, isTestMode, setAllDbTaskCount } = useAppContext();
+export default function InboxPage() {
+  const { showToast, isTestMode, setInboxCount } = useAppContext();
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,11 +33,11 @@ export default function AllDbPage() {
     }
 
     try {
-      const res = await fetch("/api/alldb");
+      const res = await fetch("/api/inbox");
       if (res.ok) {
         const data = await res.json();
         setItems(data);
-        setAllDbTaskCount(data.filter(i => !i.isCompleted).length);
+        setInboxCount(data.filter(i => !i.isCompleted).length);
       }
     } catch (error) {
       console.error("Fetch error", error);
@@ -80,7 +80,7 @@ export default function AllDbPage() {
 
     try {
       const payload = { name, memo, deadline, location };
-      const res = await fetch("/api/alldb", {
+      const res = await fetch("/api/inbox", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -93,8 +93,8 @@ export default function AllDbPage() {
           setDeadline("");
           setLocation("");
           setItems((prev) => [created, ...prev]);
-          setAllDbTaskCount(prev => prev + 1);
-          showToast("データを作成しました！");
+          setInboxCount(prev => prev + 1);
+          showToast("Notionへ保存しました！");
         } else {
           const errData = await res.json();
           throw new Error(errData.error || "保存に失敗しました");
@@ -110,11 +110,11 @@ export default function AllDbPage() {
   const handleComplete = async (id) => {
     // Optimistic update: remove from the uncompleted list
     setItems((prev) => prev.filter((item) => item.id !== id));
-    setAllDbTaskCount(prev => prev > 0 ? prev - 1 : 0);
+    setInboxCount(prev => prev > 0 ? prev - 1 : 0);
     showToast("完了にしました！");
     if (isTestMode) return;
     try {
-      const res = await fetch("/api/alldb", {
+      const res = await fetch("/api/inbox", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, isCompleted: true }),
