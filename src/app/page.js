@@ -83,12 +83,22 @@ export default function DeskPage() {
         showToast("テストモード: Notionには保存されません");
       } else {
         try {
-          await fetch("/api/tasks", {
+          const res = await fetch("/api/tasks", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ title: `【大目標】${newGoalTitle}`, project: newGoalTitle, status: "未アサイン" })
           });
-        } catch (err) {}
+          if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || "大目標の保存に失敗しました");
+          }
+          showToast("大目標を保存しました");
+        } catch (err) {
+          console.error("Add Big Goal Error:", err);
+          showToast(`エラー: ${err.message}`);
+          // 失敗したらリストから取り除く
+          setBigGoals(prev => prev.filter(g => g !== newGoalTitle));
+        }
       }
     }
     setSelectedGoalTitle(newGoalTitle);
@@ -112,14 +122,13 @@ export default function DeskPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: newTaskTitle, project: selectedGoalTitle, status: "未アサイン" })
       });
-      if (res.ok) {
-        const created = await res.json();
-        setTasks(prev => prev.map(t => t.id === tempId ? { ...created, isExecuting: false } : t));
-        showToast("タスクをストックしました");
       } else {
-        setTasks(prev => prev.filter(t => t.id !== tempId));
+        const errData = await res.json();
+        throw new Error(errData.error || "サーバーエラーが発生しました");
       }
     } catch (e) {
+      console.error("Add Task Error:", e);
+      showToast(`エラー: ${e.message}`);
       setTasks(prev => prev.filter(t => t.id !== tempId));
     }
   };

@@ -86,21 +86,25 @@ export default function AllDbPage() {
         body: JSON.stringify(payload),
       });
 
-      if (res.ok) {
-        const created = await res.json();
-        setName("");
-        setMemo("");
-        setDeadline("");
-        setLocation("");
-        setItems((prev) => [created, ...prev]);
-        setAllDbTaskCount(prev => prev + 1);
-        showToast("データを作成しました！");
+        if (res.ok) {
+          const created = await res.json();
+          setName("");
+          setMemo("");
+          setDeadline("");
+          setLocation("");
+          setItems((prev) => [created, ...prev]);
+          setAllDbTaskCount(prev => prev + 1);
+          showToast("データを作成しました！");
+        } else {
+          const errData = await res.json();
+          throw new Error(errData.error || "保存に失敗しました");
+        }
+      } catch (error) {
+        console.error("Submit error", error);
+        showToast(`エラー: ${error.message}`);
+      } finally {
+        setIsSubmitting(false);
       }
-    } catch (error) {
-      console.error("Submit error", error);
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleComplete = async (id) => {
@@ -110,13 +114,19 @@ export default function AllDbPage() {
     showToast("完了にしました！");
     if (isTestMode) return;
     try {
-      await fetch("/api/alldb", {
+      const res = await fetch("/api/alldb", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, isCompleted: true }),
       });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "更新に失敗しました");
+      }
     } catch (error) {
       console.error("Failed to complete task", error);
+      showToast(`エラー: ${error.message}`);
+      // 失敗した場合はリストを戻す必要があるが、簡易化のためログ出力のみ
     }
   };
 
