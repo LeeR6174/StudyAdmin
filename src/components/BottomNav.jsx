@@ -27,7 +27,7 @@ export default function BottomNav() {
       icon: History,
     },
     {
-      name: "ALL",
+      name: "Inbox",
       path: "/alldb",
       icon: Database,
       badge: allDbTaskCount > 0 ? allDbTaskCount : null,

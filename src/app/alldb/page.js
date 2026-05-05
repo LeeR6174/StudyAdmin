@@ -135,12 +135,12 @@ export default function AllDbPage() {
       <header className={styles.header}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <h1 className={styles.title}>ALL DB</h1>
+            <h1 className={styles.title}>Inbox</h1>
             <button className={styles.iconBtn} onClick={fetchItems} disabled={isLoading} style={{ padding: '8px', background: 'var(--bg-surface)', boxShadow: 'var(--shadow-sm)', borderRadius: '50%' }}>
               <RefreshCw size={20} className={isLoading ? styles.spin : ""} />
             </button>
           </div>
-          <p className={styles.subtitle}>すべてのデータを集約</p>
+          <p className={styles.subtitle}>急なタスクやメモを素早く記録</p>
         </div>
       </header>
 
