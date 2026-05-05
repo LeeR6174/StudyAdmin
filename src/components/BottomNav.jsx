@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, MessageSquarePlus, History, Mail } from "lucide-react";
+import { LayoutDashboard, MessageSquarePlus, History, Mail, Database } from "lucide-react";
 import styles from "./BottomNav.module.css";
 
 export default function BottomNav() {
@@ -28,6 +28,11 @@ export default function BottomNav() {
       name: "意見箱",
       path: "/feedback",
       icon: Mail,
+    },
+    {
+      name: "ALL",
+      path: "/alldb",
+      icon: Database,
     },
   ];
 
