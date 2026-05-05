@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, MessageSquarePlus, History, Mail, Database } from "lucide-react";
+import { LayoutDashboard, MessageSquarePlus, History, Database } from "lucide-react";
 import styles from "./BottomNav.module.css";
 
 export default function BottomNav() {
@@ -23,11 +23,6 @@ export default function BottomNav() {
       name: "振り返り",
       path: "/mirror",
       icon: History,
-    },
-    {
-      name: "意見箱",
-      path: "/feedback",
-      icon: Mail,
     },
     {
       name: "ALL",

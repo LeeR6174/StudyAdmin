@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import styles from "./page.module.css";
-import { Lock, Plus, Target, CheckCircle2, X, UserCog, Loader2, MessageSquare, ArrowUpRight } from "lucide-react";
+import { Lock, Plus, Target, CheckCircle2, X, UserCog, Loader2, MessageSquare, ArrowUpRight, Settings } from "lucide-react";
 import { useAppContext } from "@/context/AppProvider";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import Link from "next/link";
 
 export default function DeskPage() {
   const { isTeacherMode, toggleTeacherMode, showToast } = useAppContext();
@@ -164,12 +165,17 @@ export default function DeskPage() {
           <h1 className={styles.title}>{isTeacherMode ? "コーチデスク" : "今日の宿題"}</h1>
           <p className={styles.subtitle}>{isTeacherMode ? "コーチング・ループの実践" : "一つずつ確実に終わらせよう"}</p>
         </div>
-        <button 
-          className={styles.iconBtn} 
-          onClick={() => isTeacherMode ? toggleTeacherMode() : setShowPasswordDialog(true)}
-        >
-          {isTeacherMode ? <UserCog size={24} className={styles.teacherIcon} /> : <Lock size={24} />}
-        </button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <Link href="/feedback" className={styles.iconBtn}>
+            <Settings size={24} />
+          </Link>
+          <button 
+            className={styles.iconBtn} 
+            onClick={() => isTeacherMode ? toggleTeacherMode() : setShowPasswordDialog(true)}
+          >
+            {isTeacherMode ? <UserCog size={24} className={styles.teacherIcon} /> : <Lock size={24} />}
+          </button>
+        </div>
       </header>
 
       <AnimatePresence>
