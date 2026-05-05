@@ -114,12 +114,14 @@ export default function AllDbPage() {
     <div className={styles.container}>
       <header className={styles.header}>
         <div>
-          <h1 className={styles.title}>ALL DB</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h1 className={styles.title}>ALL DB</h1>
+            <button className={styles.iconBtn} onClick={fetchItems} disabled={isLoading} style={{ padding: '8px', background: 'var(--bg-surface)', boxShadow: 'var(--shadow-sm)', borderRadius: '50%' }}>
+              <RefreshCw size={20} className={isLoading ? styles.spin : ""} />
+            </button>
+          </div>
           <p className={styles.subtitle}>すべてのデータを集約</p>
         </div>
-        <button className={styles.iconBtn} onClick={fetchItems} disabled={isLoading} style={{ marginRight: '80px' }}>
-          <RefreshCw size={24} className={isLoading ? styles.spin : ""} />
-        </button>
       </header>
 
       <div className={`${styles.content} no-scrollbar`}>
