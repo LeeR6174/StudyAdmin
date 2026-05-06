@@ -170,3 +170,99 @@
 .quickBtn:active {
   transform: translateY(0) scale(0.96);
 }
+
+/* ===== TEACHER MODE EDIT / DELETE ===== */
+.goalActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.goalItem:hover .goalActions {
+  opacity: 1;
+}
+
+.taskActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.teacherTaskCard:hover .taskActions {
+  opacity: 1;
+}
+
+.editBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  transition: var(--transition-fast);
+}
+.editBtn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--accent-primary);
+}
+
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  transition: var(--transition-fast);
+}
+.deleteBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--accent-danger);
+}
+
+.inlineEditInput {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-md);
+  padding: 4px 10px;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  outline: none;
+  min-width: 0;
+}
+
+.refreshBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--accent-primary);
+}
+
+.refreshBtn:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+.refreshBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

@@ -14,16 +14,26 @@ export async function GET() {
 
   try {
     const notion = getNotionClient();
-    const response = await notion.databases.query({
-      database_id: databaseId,
-      sorts: [{ timestamp: "created_time", direction: "descending" }],
-    });
+    let allResults = [];
+    let hasMore = true;
+    let cursor = undefined;
 
-    const items = response.results.map((page) => ({
+    while (hasMore) {
+      const response = await notion.databases.query({
+        database_id: databaseId,
+        sorts: [{ timestamp: "created_time", direction: "ascending" }],
+        start_cursor: cursor,
+      });
+      allResults = [...allResults, ...response.results];
+      hasMore = response.has_more;
+      cursor = response.next_cursor;
+    }
+
+    const items = allResults.map((page) => ({
       id: page.id,
       name: page.properties.名前?.title[0]?.plain_text || "無題",
       memo: page.properties.メモ?.rich_text[0]?.plain_text || "",
-      deadline: page.properties.期限?.date?.start || "",
+      deadline: page.properties.期限?.date?.start || null,
       location: page.properties.場所?.rich_text[0]?.plain_text || "",
       isCompleted: page.properties.完了?.checkbox || false,
     }));

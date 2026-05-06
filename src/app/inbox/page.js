@@ -10,6 +10,7 @@ export default function InboxPage() {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(false);
 
   // Form states
   const [name, setName] = useState("");
@@ -352,6 +353,30 @@ export default function InboxPage() {
           )}
         </div>
       </div>
+        </section>
+
+        {/* Completed tasks toggle */}
+        <section className={styles.section} style={{ marginTop: "0" }}>
+          <button
+            onClick={() => setShowCompleted(v => !v)}
+            style={{ display: "flex", alignItems: "center", gap: "8px", background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.875rem", cursor: "pointer", width: "100%", padding: 0 }}
+          >
+            {showCompleted ? "▲" : "▼"} 完了済み ({items.filter(i => i.isCompleted).length}件)
+          </button>
+          {showCompleted && (
+            <div className={styles.list} style={{ marginTop: "12px" }}>
+              {items.filter(i => i.isCompleted).length === 0 ? (
+                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>完了済みはありません</p>
+              ) : (
+                items.filter(i => i.isCompleted).map(item => (
+                  <div key={item.id} style={{ padding: "12px 16px", borderRadius: "var(--radius-md)", background: "rgba(255,255,255,0.03)", border: "1px solid var(--border-color)", display: "flex", alignItems: "center", gap: "12px", opacity: 0.5 }}>
+                    <CheckSquare size={16} style={{ color: "var(--accent-success)", flexShrink: 0 }} />
+                    <span style={{ fontSize: "0.9rem", textDecoration: "line-through", color: "var(--text-muted)" }}>{item.name}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </section>
       </div>
     </div>

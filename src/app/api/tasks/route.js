@@ -13,12 +13,22 @@ export async function GET() {
 
   try {
     const notion = getNotionClient();
-    const response = await notion.databases.query({
-      database_id: databaseId,
-      sorts: [{ timestamp: "created_time", direction: "descending" }],
-    });
+    let allResults = [];
+    let hasMore = true;
+    let cursor = undefined;
 
-    const tasks = response.results.map((page) => {
+    while (hasMore) {
+      const response = await notion.databases.query({
+        database_id: databaseId,
+        sorts: [{ timestamp: "created_time", direction: "ascending" }],
+        start_cursor: cursor,
+      });
+      allResults = [...allResults, ...response.results];
+      hasMore = response.has_more;
+      cursor = response.next_cursor;
+    }
+
+    const tasks = allResults.map((page) => {
       const statusName = page.properties.Status?.select?.name;
       let internalStatus = "backlog"; // default
       if (statusName === "完了") internalStatus = "done";
@@ -33,7 +43,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json(tasks.reverse());
+    return NextResponse.json(tasks);
   } catch (error) {
     console.error("Error fetching tasks:", error);
     return NextResponse.json({ error: error.message || "Failed to fetch tasks" }, { status: 500 });
@@ -76,21 +86,43 @@ export async function POST(request) {
 export async function PATCH(request) {
   try {
     const notion = getNotionClient();
-    const { id, status } = await request.json();
-    let notionStatus = "未アサイン";
-    if (status === "done") notionStatus = "完了";
-    if (status === "todo") notionStatus = "未着手";
+    const { id, title, project, status } = await request.json();
+    const properties = {};
+
+    if (title) properties.Name = { title: [{ text: { content: title } }] };
+    if (project) properties.Project = { rich_text: [{ text: { content: project } }] };
+    if (status) {
+      let notionStatus = "未アサイン";
+      if (status === "done") notionStatus = "完了";
+      if (status === "todo") notionStatus = "未着手";
+      properties.Status = { select: { name: notionStatus } };
+    }
 
     await notion.pages.update({
       page_id: id,
-      properties: {
-        Status: { select: { name: notionStatus } },
-      },
+      properties,
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error updating task:", error);
     return NextResponse.json({ error: error.message || "Failed to update task" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const notion = getNotionClient();
+    const { id } = await request.json();
+
+    await notion.pages.update({
+      page_id: id,
+      archived: true,
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    return NextResponse.json({ error: error.message || "Failed to delete task" }, { status: 500 });
   }
 }

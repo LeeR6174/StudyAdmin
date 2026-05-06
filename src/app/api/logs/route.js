@@ -13,12 +13,22 @@ export async function GET() {
 
   try {
     const notion = getNotionClient();
-    const response = await notion.databases.query({
-      database_id: databaseId,
-      sorts: [{ property: "日付", direction: "descending" }],
-    });
+    let allResults = [];
+    let hasMore = true;
+    let cursor = undefined;
 
-    const logs = response.results.map((page) => ({
+    while (hasMore) {
+      const response = await notion.databases.query({
+        database_id: databaseId,
+        sorts: [{ property: "日付", direction: "descending" }],
+        start_cursor: cursor,
+      });
+      allResults = [...allResults, ...response.results];
+      hasMore = response.has_more;
+      cursor = response.next_cursor;
+    }
+
+    const logs = allResults.map((page) => ({
       id: page.id,
       content: page.properties.Name?.title[0]?.plain_text || "無題",
       type: page.properties.Type?.select?.name || "壁打ち",

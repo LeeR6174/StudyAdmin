@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./page.module.css";
-import { Send, Loader2, BookOpen, UserCog, Lightbulb, AlertTriangle, FileText } from "lucide-react";
+import { Send, Loader2, BookOpen, UserCog, Lightbulb, AlertTriangle, FileText, ChevronDown, ChevronUp, Clock } from "lucide-react";
 import { useAppContext } from "@/context/AppProvider";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -49,15 +49,40 @@ const TEMPLATES = {
 
 export default function LogPage() {
   const { isTeacherMode, showToast, isTestMode } = useAppContext();
-  
+
   // Student State
   const [activeTemplate, setActiveTemplate] = useState("KPT");
   const [formData, setFormData] = useState({});
-  
+
   // Teacher State
   const [teacherContent, setTeacherContent] = useState("");
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Past logs
+  const [pastLogs, setPastLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(true);
+  const [showPastLogs, setShowPastLogs] = useState(false);
+  const [expandedLogId, setExpandedLogId] = useState(null);
+
+  useEffect(() => {
+    if (isTestMode) {
+      setPastLogs([
+        { id: "l1", content: "## Keep (よかったこと)\n集中して3時間作業できた\n\n## Problem (課題)\nスマホを何度も見てしまった\n\n## Try (明日試すこと)\n作業中はスマホを別の部屋に置く", type: "壁打ち", date: new Date(Date.now() - 86400000).toISOString(), isTeacherLog: false },
+        { id: "l2", content: "今日の取り組みは概ね良好。ただしタスクの優先順位を明確にすること。", type: "コーチメモ", date: new Date(Date.now() - 86400000).toISOString(), isTeacherLog: true },
+        { id: "l3", content: "## Keep\n英単語を毎朝30分続けられた\n\n## Problem\n数学の応用問題でつまずいた\n\n## Try\n基礎から復習する時間を作る", type: "壁打ち", date: new Date(Date.now() - 86400000 * 2).toISOString(), isTeacherLog: false },
+      ]);
+      setLogsLoading(false);
+      return;
+    }
+    fetch("/api/logs")
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) setPastLogs(data);
+        setLogsLoading(false);
+      })
+      .catch(() => setLogsLoading(false));
+  }, [isTestMode]);
 
   const handleFieldChange = (id, value) => {
     setFormData(prev => ({ ...prev, [id]: value }));
@@ -65,25 +90,27 @@ export default function LogPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     let submitContent = "";
-    
+
     if (isTeacherMode) {
       if (!teacherContent.trim()) return;
       submitContent = teacherContent;
     } else {
       const template = TEMPLATES[activeTemplate];
       let hasData = false;
-      
+
       const parts = template.fields.map(field => {
         const val = formData[field.id]?.trim();
         if (val) hasData = true;
         return `## ${field.label}\n${val || "（なし）"}`;
       });
-      
+
       if (!hasData) return;
       submitContent = parts.join("\n\n");
     }
+
+    setIsSubmitting(true);
 
     if (isTestMode) {
       setTimeout(() => {
@@ -102,13 +129,22 @@ export default function LogPage() {
       const res = await fetch("/api/logs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          content: submitContent, 
-          isTeacherLog: isTeacherMode 
+        body: JSON.stringify({
+          content: submitContent,
+          isTeacherLog: isTeacherMode
         })
       });
 
       if (res.ok) {
+        const newLog = {
+          id: Date.now().toString(),
+          content: submitContent,
+          type: isTeacherMode ? "コーチメモ" : activeTemplate,
+          date: new Date().toISOString(),
+          isTeacherLog: isTeacherMode,
+        };
+        setPastLogs(prev => [newLog, ...prev]);
+
         if (isTeacherMode) {
           setTeacherContent("");
           showToast("Notionへ評価を記録しました！");
@@ -127,6 +163,23 @@ export default function LogPage() {
       setIsSubmitting(false);
     }
   };
+
+  const formatDate = (dateStr) => {
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("ja-JP", { month: "long", day: "numeric", weekday: "short" });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Group logs by date
+  const groupedLogs = pastLogs.reduce((acc, log) => {
+    const dateKey = formatDate(log.date);
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(log);
+    return acc;
+  }, {});
 
   return (
     <div className={`${styles.container} ${isTeacherMode ? styles.teacherModeTheme : ""}`}>
@@ -148,7 +201,7 @@ export default function LogPage() {
             const Icon = tmpl.icon;
             const isActive = activeTemplate === tmpl.id;
             return (
-              <button 
+              <button
                 key={tmpl.id}
                 onClick={() => { setActiveTemplate(tmpl.id); setFormData({}); }}
                 className={`${styles.templateBtn} ${isActive ? styles.activeTemplateBtn : ""}`}
@@ -161,14 +214,14 @@ export default function LogPage() {
         </div>
       )}
 
-      <motion.div 
+      <motion.div
         className={styles.editorContainer}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        key={activeTemplate} // Re-animate on template change
+        key={activeTemplate}
       >
         <form onSubmit={handleSubmit} className={styles.form}>
-          
+
           <div className={`${styles.fieldsContainer} no-scrollbar`}>
             {isTeacherMode ? (
               <textarea
@@ -195,13 +248,13 @@ export default function LogPage() {
               ))
             )}
           </div>
-          
+
           <div className={styles.actionRow}>
             <span className={styles.hint}>
               Markdown対応。送信するとNotionに自動保存されます。
             </span>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className={styles.submitBtn}
               disabled={isSubmitting}
             >
@@ -217,6 +270,73 @@ export default function LogPage() {
           </div>
         </form>
       </motion.div>
+
+      {/* Past Logs Section */}
+      <div className={styles.pastLogsSection}>
+        <button
+          className={styles.pastLogsToggle}
+          onClick={() => setShowPastLogs(v => !v)}
+        >
+          <Clock size={15} />
+          <span>過去のログ {pastLogs.length > 0 ? `(${pastLogs.length}件)` : ""}</span>
+          {showPastLogs ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+        </button>
+
+        <AnimatePresence>
+          {showPastLogs && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              style={{ overflow: "hidden" }}
+            >
+              {logsLoading ? (
+                <div style={{ display: "flex", justifyContent: "center", padding: "24px" }}>
+                  <Loader2 size={20} className={styles.spin} style={{ color: "var(--text-muted)" }} />
+                </div>
+              ) : pastLogs.length === 0 ? (
+                <p className={styles.noLogsText}>まだログがありません</p>
+              ) : (
+                <div className={styles.logHistoryList}>
+                  {Object.entries(groupedLogs).map(([date, logs]) => (
+                    <div key={date}>
+                      <div className={styles.logDateHeader}>{date}</div>
+                      {logs.map(log => (
+                        <div key={log.id} className={`${styles.logHistoryItem} ${log.isTeacherLog ? styles.teacherLogItem : ""}`}>
+                          <div
+                            className={styles.logHistoryHeader}
+                            onClick={() => setExpandedLogId(expandedLogId === log.id ? null : log.id)}
+                          >
+                            <span className={`${styles.logTypeBadge} ${log.isTeacherLog ? styles.teacherBadge : ""}`}>
+                              {log.isTeacherLog ? "コーチメモ" : log.type}
+                            </span>
+                            <span className={styles.logPreview}>
+                              {log.content.replace(/##.*\n/g, "").trim().slice(0, 40)}...
+                            </span>
+                            {expandedLogId === log.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                          </div>
+                          <AnimatePresence>
+                            {expandedLogId === log.id && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                style={{ overflow: "hidden" }}
+                              >
+                                <pre className={styles.logFullContent}>{log.content}</pre>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

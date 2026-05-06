@@ -146,49 +146,148 @@ export function AppProvider({ children }) {
   };
 
   const updateTaskStatus = async (taskId, newStatus) => {
-    // Optimistic update immediately — Notion sync happens in the background
+    const previousTasks = [...tasks];
     setTasks(prev => prev.map(t =>
       t.id === taskId ? { ...t, status: newStatus, isExecuting: false } : t
     ));
     if (newStatus === "done") showToast("タスクを完了しました！");
     if (isTestMode) return;
     try {
-      await fetch("/api/tasks", {
+      const res = await fetch("/api/tasks", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: taskId, status: newStatus }),
       });
+      if (!res.ok) throw new Error();
     } catch (e) {
-      console.error("Failed to update status", e);
+      setTasks(previousTasks);
+      showToast("更新に失敗しました");
     }
   };
 
   const promoteToTodo = async (taskId) => {
+    const previousTasks = [...tasks];
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "todo" } : t));
     showToast("宿題にアサインしました");
     if (isTestMode) return;
-    await fetch("/api/tasks", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: taskId, status: "todo" }),
-    });
+    try {
+      const res = await fetch("/api/tasks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: taskId, status: "todo" }),
+      });
+      if (!res.ok) throw new Error();
+    } catch (e) {
+      setTasks(previousTasks);
+      showToast("アサインに失敗しました");
+    }
   };
 
   const revertToBacklog = async (taskId) => {
+    const previousTasks = [...tasks];
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: "backlog" } : t));
     showToast("アサインを取り消しました");
     if (isTestMode) return;
-    await fetch("/api/tasks", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: taskId, status: "backlog" }),
-    });
+    try {
+      const res = await fetch("/api/tasks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: taskId, status: "backlog" }),
+      });
+      if (!res.ok) throw new Error();
+    } catch (e) {
+      setTasks(previousTasks);
+      showToast("取り消しに失敗しました");
+    }
   };
 
   const toggleExecuting = (taskId) => {
     setTasks(prev => prev.map(t =>
       t.id === taskId ? { ...t, isExecuting: !t.isExecuting } : { ...t, isExecuting: false }
     ));
+  };
+
+  // --- Edit / Delete Task ---
+  const updateTaskTitle = async (taskId, newTitle) => {
+    if (!newTitle.trim()) return;
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, title: newTitle.trim() } : t));
+    if (isTestMode) return;
+    try {
+      await fetch("/api/tasks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: taskId, title: newTitle.trim() }),
+      });
+    } catch (e) {
+      console.error("Failed to update title", e);
+    }
+  };
+
+  const deleteTask = async (taskId) => {
+    setTasks(prev => prev.filter(t => t.id !== taskId));
+    showToast("タスクを削除しました");
+    if (isTestMode) return;
+    try {
+      await fetch("/api/tasks", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: taskId }),
+      });
+    } catch (e) {
+      console.error("Failed to delete task", e);
+    }
+  };
+
+  // Rename a big goal: updates all tasks in that project
+  const renameGoal = async (oldName, newName) => {
+    if (!newName.trim() || oldName === newName.trim()) return;
+    const trimmed = newName.trim();
+    // Capture before state update
+    const affected = tasks.filter(t => t.project === oldName);
+    // Optimistic update
+    setTasks(prev => prev.map(t => {
+      if (t.project !== oldName) return t;
+      const newTitle = t.title.startsWith("【大目標】") ? `【大目標】${trimmed}` : t.title;
+      return { ...t, project: trimmed, title: newTitle };
+    }));
+    showToast("大目標を更新しました");
+    if (typeof window !== "undefined") {
+      if (localStorage.getItem("studyAdmin_selectedGoal") === oldName) {
+        localStorage.setItem("studyAdmin_selectedGoal", trimmed);
+      }
+    }
+    if (isTestMode) return;
+    for (const t of affected) {
+      const newTitle = t.title.startsWith("【大目標】") ? `【大目標】${trimmed}` : t.title;
+      try {
+        await fetch("/api/tasks", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: t.id, title: newTitle, project: trimmed }),
+        });
+      } catch (e) {
+        console.error("Failed to rename task", e);
+      }
+    }
+  };
+
+  // Delete a big goal and all its tasks
+  const deleteGoal = async (goalName) => {
+    const affected = tasks.filter(t => t.project === goalName);
+    setTasks(prev => prev.filter(t => t.project !== goalName));
+    showToast(`「${goalName}」と関連タスクを削除しました`);
+    if (isTestMode) return;
+    for (const t of affected) {
+      try {
+        await fetch("/api/tasks", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: t.id }),
+        });
+      } catch (e) {
+        console.error("Failed to delete task", e);
+      }
+    }
   };
 
   return (
@@ -201,6 +300,7 @@ export function AppProvider({ children }) {
       tasks, setTasks, tasksLoaded, recentLog,
       fetchTasks,
       addTask, updateTaskStatus, promoteToTodo, revertToBacklog, toggleExecuting,
+      updateTaskTitle, deleteTask, renameGoal, deleteGoal,
     }}>
       {children}
       
