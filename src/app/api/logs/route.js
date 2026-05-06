@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-const { Client } = require("@notionhq/client");
+import { Client } from "@notionhq/client";
 
 // Initialize Notion Client helper
 const getNotionClient = () => new Client({ auth: process.env.NOTION_API_KEY });
@@ -15,14 +15,14 @@ export async function GET() {
     const notion = getNotionClient();
     const response = await notion.databases.query({
       database_id: databaseId,
-      sorts: [{ property: "Date", direction: "descending" }],
+      sorts: [{ property: "日付", direction: "descending" }],
     });
 
     const logs = response.results.map((page) => ({
       id: page.id,
       content: page.properties.Name?.title[0]?.plain_text || "無題",
       type: page.properties.Type?.select?.name || "壁打ち",
-      date: page.properties.Date?.date?.start || page.created_time,
+      date: page.properties.Date?.date?.start || page.properties.日付?.date?.start || page.created_time,
       isTeacherLog: page.properties.Type?.select?.name === "コーチメモ",
     }));
 
@@ -50,7 +50,7 @@ export async function POST(request) {
       properties: {
         Name: { title: [{ text: { content: content } }] },
         Type: { select: { name: type } },
-        Date: { date: { start: dateStr } },
+        日付: { date: { start: dateStr } },
       },
     });
 

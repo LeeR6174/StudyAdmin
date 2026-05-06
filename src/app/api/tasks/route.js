@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-const { Client } = require("@notionhq/client");
+import { Client } from "@notionhq/client";
 
 // Initialize Notion Client helper
 const getNotionClient = () => new Client({ auth: process.env.NOTION_API_KEY });
