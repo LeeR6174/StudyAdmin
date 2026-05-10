@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessageSquarePlus, Database, LayoutDashboard, Lightbulb } from "lucide-react";
+import { motion } from "framer-motion";
 import styles from "./BottomNav.module.css";
 import { useAppContext } from "@/context/AppProvider";
 
