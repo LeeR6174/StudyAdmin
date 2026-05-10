@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquarePlus, Database, LayoutDashboard, Lightbulb } from "lucide-react";
+import { MessageSquarePlus, Database, LayoutDashboard, Lightbulb, PenTool } from "lucide-react";
 import { motion } from "framer-motion";
 import styles from "./BottomNav.module.css";
 import { useAppContext } from "@/context/AppProvider";
@@ -16,6 +16,7 @@ export default function BottomNav() {
     { name: "Inbox", path: "/inbox", icon: Database, badge: inboxCount > 0 ? inboxCount : null },
     { name: "Dialogue", path: "/practice", icon: LayoutDashboard },
     { name: "思考", path: "/notes", icon: Lightbulb },
+    { name: "レター", path: "/letters", icon: PenTool },
   ];
 
   return (

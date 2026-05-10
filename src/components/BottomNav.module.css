@@ -34,7 +34,7 @@
 }
 
 .iconWrapper {
-  padding: 8px 16px;
+  padding: 8px 12px;
   border-radius: 20px;
   transition: var(--transition-normal);
 }
