@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import styles from "../page.module.css";
-import { Lightbulb, Plus, Loader2, Search, Filter, MessageSquare, ChevronDown, Sparkles } from "lucide-react";
+import { Lightbulb, Plus, Loader2, ChevronDown, Sparkles } from "lucide-react";
 import { useAppContext } from "@/context/AppProvider";
 import { motion, AnimatePresence } from "framer-motion";
 

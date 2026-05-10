@@ -51,9 +51,9 @@ export async function POST(request) {
 
   try {
     const notion = getNotionClient();
-    const { content, isTeacherLog } = await request.json();
-    const type = isTeacherLog ? "コーチメモ" : "壁打ち";
-    const dateStr = new Date().toISOString(); // ISO-8601 format
+    const { content, isTeacherLog, type: customType } = await request.json();
+    const type = customType || (isTeacherLog ? "コーチメモ" : "壁打ち");
+    const dateStr = new Date().toISOString(); 
 
     await notion.pages.create({
       parent: { database_id: databaseId },

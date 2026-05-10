@@ -1,23 +1,21 @@
-# StudyAdmin - Self Coaching Hub
+# StudyAdmin - Personal Productivity Hub
 
-StudyAdminは、自身を生徒とコーチの2つの視点から管理・育成するための、モバイルファーストな「セルフコーチング・ハブ」アプリケーションです。Next.js と Notion API を連携し、思考の整理と日々のタスク実行を強力にサポートします。
+StudyAdminは、日々の情報の「即時記録（Inbox）」、自分との「対話練習（Practice）」、そしてコンテンツの「深層思考（Thinking）」を統合した、ミニマルでプレミアムなパーソナル・プロダクティビティ・ツールです。
 
 ## ✨ 主な機能
 
-1. **生徒モード（Desk）**
-   *   直感的なスワイプ操作（Framer Motion）によるタスク完了
-   *   「未着手」「完了」のタブ切り替えと「実行中」のフォーカスUI
-2. **先生モード（Coach Desk）**
-   *   パスワード保護（デフォルト `555`）によるモード切り替え
-   *   大目標（プロジェクト）の管理とタスクへの細分化（未アサイン・プール機能）
-   *   生徒へのタスク・アサイン（宿題機能）
-3. **コーチング・ループと壁打ち（Log）**
-   *   「KPT法」「失敗分析」などの穴埋め式フレームワークを備えた思考の書き出し
-   *   Notionデータベースへの自動Markdownフォーマット保存
-   *   先生モードで昨日のログを確認し、次の宿題へ繋げるコーチング・ループ
-4. **PWA対応とプレミアムUI**
-   *   ダークモード基調のグラスモーフィズムデザイン
-   *   ユーザーアクションに対するグローバル・トースト通知
+1. **Quick Inbox (即時記録)**
+   *   思いついたタスクやアイデアを、期限や場所と共に一瞬で記録。
+   *   Notion DBと同期し、デスクトップからも管理可能。
+2. **Conversation Practice (会話練習)**
+   *   一人二役でのチャットシミュレーション。
+   *   終了後の「反省コメント」と共に履歴を保存し、客観的に自分を振り返る。
+3. **Thinking Notes (思考ノート)**
+   *   「比較」「抽象」「ナイモノ」「流行」「普遍」の5つのカテゴリで、コンテンツを深掘り。
+   *   フレームワークに基づいた質の高い思考記録。
+4. **Cool & Gentle UI**
+   *   Slate & Teal を基調とした落ち着いたデザイン。
+   *   グラスモーフィズムとスムーズなアニメーションによるプレミアムな操作感。
 
 ## 🛠 技術スタック
 
@@ -25,38 +23,24 @@ StudyAdminは、自身を生徒とコーチの2つの視点から管理・育成
 *   **Styling**: Vanilla CSS (CSS Modules)
 *   **Animation**: Framer Motion
 *   **Icons**: Lucide React
-*   **Backend / DB**: Notion API (`@notionhq/client`)
+*   **Backend / DB**: Notion API
 
 ## 🚀 セットアップ手順
 
-1. **リポジトリのクローンとインストール**
-   ```bash
-   git clone https://github.com/LeeR6174/StudyAdmin.git
-   cd StudyAdmin
-   npm install
-   ```
-
-2. **環境変数の設定**
-   ルートディレクトリにある `.env.local.example` をコピーして `.env.local` を作成し、Notion APIのキーとデータベースIDを設定してください。
+1. **環境変数の設定**
+   `.env.local` に以下のキーを設定してください：
    ```env
-   NOTION_API_KEY=ntn_your_secret_token_here
-   NOTION_TASKS_DB_ID=your_tasks_database_id_here
-   NOTION_LOGS_DB_ID=your_logs_database_id_here
+   NOTION_API_KEY=your_notion_api_key
+   NOTION_INBOX_DB_ID=inbox_database_id
+   NOTION_LOGS_DB_ID=logs_database_id (練習記録用)
+   NOTION_NOTES_DB_ID=notes_database_id (思考ノート用)
    ```
 
-3. **Notionデータベースの準備**
-   *   **Tasks DB**: `Name` (タイトル), `Status` (セレクト: `未アサイン`, `未着手`, `完了`), `Project` (テキスト)
-   *   **Logs DB**: `Name` (タイトル), `Type` (セレクト: `壁打ち`, `コーチメモ`), `Date` (日付)
-
-4. **開発サーバーの起動**
+2. **開発サーバーの起動**
    ```bash
+   npm install
    npm run dev
    ```
-   ブラウザで [http://localhost:3000](http://localhost:3000) を開いて確認できます。
-
-## 📱 PWAとしての利用
-
-スマホのブラウザでアクセスし、「ホーム画面に追加」を選択することで、ネイティブアプリのようにフルスクリーンで快適に利用できます。
 
 ---
-*Developed for personal growth and self-management.*
+*Developed for deeper thinking and faster action.*

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import styles from "../page.module.css";
-import { Database, Loader2, CheckSquare, RefreshCw, Bell, MapPin, Calendar, CheckCircle2 } from "lucide-react";
+import { Database, Loader2, CheckSquare, RefreshCw, MapPin, Calendar, CheckCircle2 } from "lucide-react";
 import { useAppContext } from "@/context/AppProvider";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -110,7 +110,7 @@ export default function InboxViewPage() {
                       </div>
                       <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{item.name}</h3>
                     </div>
-                    <button onClick={() => handleComplete(item.id)} style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid var(--border-color)', display: 'flex', alignItems: 'center', justify-content: 'center' }}>
+                    <button onClick={() => handleComplete(item.id)} style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'transparent' }} />
                     </button>
                   </div>

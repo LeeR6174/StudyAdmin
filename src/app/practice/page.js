@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import styles from "../page.module.css";
-import { MessageSquare, Send, User, RotateCcw, CheckCircle2, History, MessageSquarePlus, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Send, CheckCircle2, History, MessageSquarePlus, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { useAppContext } from "@/context/AppProvider";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -102,7 +102,7 @@ export default function PracticePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           content: fullContent,
-          isTeacherLog: false // Conversation logs are student logs
+          type: "会話練習"
         })
       });
       
