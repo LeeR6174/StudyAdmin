@@ -237,17 +237,38 @@ export default function PracticePage() {
                     }}
                   >役 B</button>
                 </div>
-                <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '10px' }}>
-                  <input 
-                    type="text" 
+                <form 
+                  onSubmit={handleSendMessage} 
+                  style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}
+                >
+                  <textarea 
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage(e);
+                      }
+                    }}
                     placeholder={`役 ${currentRole} として入力...`}
                     className={styles.input}
-                    style={{ flex: 1, marginBottom: 0 }}
+                    style={{ 
+                      flex: 1, 
+                      marginBottom: 0, 
+                      minHeight: '80px', 
+                      maxHeight: '150px',
+                      padding: '12px 16px',
+                      fontSize: '1.05rem',
+                      resize: 'none',
+                      lineHeight: 1.5
+                    }}
                   />
-                  <button type="submit" className={styles.primaryBtn} style={{ padding: '0 15px', borderRadius: '12px' }}>
-                    <Send size={20} />
+                  <button 
+                    type="submit" 
+                    className={styles.primaryBtn} 
+                    style={{ width: '56px', height: '56px', borderRadius: '16px', flexShrink: 0 }}
+                  >
+                    <Send size={24} />
                   </button>
                 </form>
                 {messages.length > 0 && (
