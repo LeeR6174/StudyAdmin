@@ -9,14 +9,14 @@ import { useAppContext } from "@/context/AppProvider";
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { inboxCount } = useAppContext();
+  const { inboxCount, letterBadge } = useAppContext();
 
   const navItems = [
     { name: "追加", path: "/", icon: MessageSquarePlus },
     { name: "Inbox", path: "/inbox", icon: Database, badge: inboxCount > 0 ? inboxCount : null },
     { name: "Dialogue", path: "/practice", icon: LayoutDashboard },
     { name: "思考", path: "/notes", icon: Lightbulb },
-    { name: "レター", path: "/letters", icon: PenTool },
+    { name: "レター", path: "/letters", icon: PenTool, badge: letterBadge ? "!" : null },
   ];
 
   return (

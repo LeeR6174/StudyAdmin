@@ -18,7 +18,7 @@ export async function GET() {
     const response = await notion.databases.query({
       database_id: databaseId,
       sorts: [{ timestamp: "created_time", direction: "descending" }],
-      page_size: 5,
+      page_size: 100,
     });
 
     const items = response.results.map(page => ({

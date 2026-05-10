@@ -7,7 +7,7 @@ import { useAppContext } from "@/context/AppProvider";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function RoleLetteringPage() {
-  const { showToast, isTestMode } = useAppContext();
+  const { showToast, isTestMode, letterBadge, setLetterBadge } = useAppContext();
   const [lastTrouble, setLastTrouble] = useState("読み込み中...");
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -15,7 +15,7 @@ export default function RoleLetteringPage() {
 
   // Form State
   const [answer, setAnswer] = useState("");
-  const [threeThings, setThreeThings] = useState("");
+  const [threeThings, setThreeThings] = useState(["", "", ""]);
   const [thisWeekTrouble, setThisWeekTrouble] = useState("");
   const [expandedId, setExpandedId] = useState(null);
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -55,20 +55,23 @@ export default function RoleLetteringPage() {
       resetForm();
       setIsSubmitting(false);
       setIsSessionActive(false);
+      setLetterBadge(false);
       return;
     }
 
     try {
+      const formattedThreeThings = threeThings.map((t, i) => `${i + 1}. ${t}`).join("\n");
       const res = await fetch("/api/letters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answer, threeThings, thisWeekTrouble }),
+        body: JSON.stringify({ answer, threeThings: formattedThreeThings, thisWeekTrouble }),
       });
       if (res.ok) {
         showToast("今週のレターを保存しました");
         resetForm();
         fetchData();
         setIsSessionActive(false);
+        setLetterBadge(false); // Clear badge on success
       }
     } catch (error) {
       showToast("エラーが発生しました");
@@ -79,15 +82,27 @@ export default function RoleLetteringPage() {
 
   const resetForm = () => {
     setAnswer("");
-    setThreeThings("");
+    setThreeThings(["", "", ""]);
     setThisWeekTrouble("");
   };
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Role Lettering <PenTool size={24} style={{ color: 'var(--accent-primary)' }} /></h1>
-        <p className={styles.subtitle}>自分への手紙で一週間を繋ぐ</p>
+      <header className={styles.header} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 className={styles.title}>Role Lettering <PenTool size={24} style={{ color: 'var(--accent-primary)' }} /></h1>
+          <p className={styles.subtitle}>自分への手紙で一週間を繋ぐ</p>
+        </div>
+        <button 
+          onClick={() => {
+            setLetterBadge(!letterBadge);
+            showToast(letterBadge ? "通知バッジを非表示にしました" : "通知バッジを表示しました（テスト）");
+          }}
+          className={styles.iconBtn}
+          style={{ background: letterBadge ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)', color: letterBadge ? '#0f172a' : 'white' }}
+        >
+          <Sparkles size={20} />
+        </button>
       </header>
 
       <div className={styles.content}>
@@ -111,10 +126,16 @@ export default function RoleLetteringPage() {
                   alignItems: 'center', 
                   gap: '20px',
                   background: 'rgba(56, 189, 248, 0.03)',
-                  border: '1px solid rgba(56, 189, 248, 0.1)',
-                  cursor: 'pointer'
+                  border: letterBadge ? '1px solid var(--accent-primary)' : '1px solid rgba(56, 189, 248, 0.1)',
+                  cursor: 'pointer',
+                  position: 'relative'
                 }}
               >
+                {letterBadge && (
+                  <div style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--accent-danger)', color: 'white', fontSize: '0.7rem', padding: '4px 8px', borderRadius: '4px', fontWeight: 800 }}>
+                    実施時期です！
+                  </div>
+                )}
                 <div style={{ 
                   width: '64px', height: '64px', borderRadius: '50%', 
                   background: 'var(--accent-primary-gradient)', 
@@ -138,37 +159,51 @@ export default function RoleLetteringPage() {
             >
               <form onSubmit={handleSubmit} className="card" style={{ padding: '24px', marginBottom: '40px' }}>
                 <div className={styles.inputGroup}>
-                  <label className={styles.fieldLabel} style={{ color: 'var(--accent-primary)' }}>先週のお悩み</label>
-                  <div style={{ 
-                    background: 'rgba(56, 189, 248, 0.05)', 
-                    padding: '16px', 
-                    borderRadius: '12px', 
-                    border: '1px dashed var(--accent-primary)',
-                    fontSize: '0.95rem',
-                    lineHeight: 1.6,
-                    color: 'var(--text-main)'
-                  }}>
-                    {lastTrouble}
+                  <label className={styles.fieldLabel} style={{ color: 'var(--accent-primary)' }}>先週の自分からの相談</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ 
+                      background: 'rgba(56, 189, 248, 0.05)', 
+                      padding: '16px', 
+                      borderRadius: '4px 16px 16px 16px', 
+                      border: '1px solid rgba(56, 189, 248, 0.2)',
+                      fontSize: '0.9rem',
+                      lineHeight: 1.6,
+                      color: 'var(--text-muted)',
+                      position: 'relative'
+                    }}>
+                      {lastTrouble}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: '2px solid rgba(56, 189, 248, 0.1)' }}>
+                      <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-primary)', marginBottom: '4px' }}>今の自分からの返答</label>
+                      <textarea 
+                        value={answer} onChange={(e) => setAnswer(e.target.value)} 
+                        placeholder="相談への答えを書いてみよう..." className={styles.input}
+                        style={{ minHeight: '80px', resize: 'none', background: 'rgba(255,255,255,0.02)' }}
+                        autoFocus
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label className={styles.fieldLabel}>先週のお悩み回答</label>
-                  <textarea 
-                    value={answer} onChange={(e) => setAnswer(e.target.value)} 
-                    placeholder="自分なりの答えを書いてみよう..." className={styles.input}
-                    style={{ minHeight: '100px', resize: 'none' }}
-                    autoFocus
-                  />
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label className={styles.fieldLabel}>今週の3つのコト</label>
-                  <textarea 
-                    value={threeThings} onChange={(e) => setThreeThings(e.target.value)} 
-                    placeholder="1. ○○をする&#13;2. ○○を意識する..." className={styles.input}
-                    style={{ minHeight: '100px', resize: 'none' }}
-                  />
+                  <label className={styles.fieldLabel}>今週あった3つのこと</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {threeThings.map((thing, idx) => (
+                      <input 
+                        key={idx}
+                        type="text"
+                        value={thing}
+                        onChange={(e) => {
+                          const newThings = [...threeThings];
+                          newThings[idx] = e.target.value;
+                          setThreeThings(newThings);
+                        }}
+                        placeholder={`${idx + 1}. できたこと、嬉しかったこと`}
+                        className={styles.input}
+                        style={{ marginBottom: 0 }}
+                      />
+                    ))}
+                  </div>
                 </div>
 
                 <div className={styles.inputGroup}>
