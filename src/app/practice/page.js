@@ -136,7 +136,7 @@ export default function PracticePage() {
       <header className={styles.header} style={{ flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
           <div>
-            <h1 className={styles.title}>会話練習</h1>
+            <h1 className={styles.title}>Dialogue</h1>
             <p className={styles.subtitle}>
               {view === "chat" ? "一人二役で会話をシミュレーション" : 
                view === "reflect" ? "練習を振り返る" : "過去の練習記録"}

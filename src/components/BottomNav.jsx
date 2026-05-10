@@ -14,7 +14,7 @@ export default function BottomNav() {
   const navItems = [
     { name: "追加", path: "/", icon: MessageSquarePlus },
     { name: "Inbox", path: "/inbox", icon: Database, badge: inboxCount > 0 ? inboxCount : null },
-    { name: "練習", path: "/practice", icon: LayoutDashboard },
+    { name: "Dialogue", path: "/practice", icon: LayoutDashboard },
     { name: "思考", path: "/notes", icon: Lightbulb },
   ];
 
