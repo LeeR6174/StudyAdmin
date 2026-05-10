@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, MessageSquarePlus, History, Database } from "lucide-react";
+import { MessageSquarePlus, Database, LayoutDashboard, Lightbulb } from "lucide-react";
 import styles from "./BottomNav.module.css";
 import { useAppContext } from "@/context/AppProvider";
 
@@ -11,27 +11,10 @@ export default function BottomNav() {
   const { inboxCount } = useAppContext();
 
   const navItems = [
-    {
-      name: "デスク",
-      path: "/",
-      icon: LayoutDashboard,
-    },
-    {
-      name: "壁打ち",
-      path: "/log",
-      icon: MessageSquarePlus,
-    },
-    {
-      name: "振り返り",
-      path: "/mirror",
-      icon: History,
-    },
-    {
-      name: "Inbox",
-      path: "/inbox",
-      icon: Database,
-      badge: inboxCount > 0 ? inboxCount : null,
-    },
+    { name: "追加", path: "/", icon: MessageSquarePlus },
+    { name: "Inbox", path: "/inbox", icon: Database, badge: inboxCount > 0 ? inboxCount : null },
+    { name: "練習", path: "/practice", icon: LayoutDashboard },
+    { name: "思考", path: "/notes", icon: Lightbulb },
   ];
 
   return (
@@ -44,15 +27,20 @@ export default function BottomNav() {
           return (
             <li key={item.name} className={styles.navItem}>
               <Link href={item.path} className={`${styles.navLink} ${isActive ? styles.active : ""}`}>
-                <div style={{ position: 'relative' }}>
-                  <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                <motion.div 
+                  whileTap={{ scale: 0.9 }}
+                  style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
+                >
+                  <div className={`${styles.iconWrapper} ${isActive ? styles.activeIcon : ""}`}>
+                    <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                  </div>
+                  <span className={styles.label}>{item.name}</span>
                   {item.badge && (
-                    <span style={{ position: 'absolute', top: '-4px', right: '-8px', background: 'var(--accent-danger)', color: 'white', fontSize: '0.65rem', fontWeight: 'bold', padding: '2px 5px', borderRadius: '10px', lineHeight: 1 }}>
+                    <span className={styles.badge}>
                       {item.badge}
                     </span>
                   )}
-                </div>
-                <span className={styles.label}>{item.name}</span>
+                </motion.div>
               </Link>
             </li>
           );
