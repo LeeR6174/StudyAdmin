@@ -61,21 +61,23 @@ export default function RoleLetteringPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    const formattedThreeThings = threeThings.map((t, i) => `${i + 1}. ${t}`).join("\n");
-    const formattedAnswers = lastTroubleList.map((q, i) => `【Q${i+1}: ${q}】\nAns: ${answers[i] || "（なし）"}`).join("\n\n");
-    const formattedTroubles = thisWeekTroubles.map((t, i) => `${i + 1}. ${t}`).join("\n");
-
-    if (isTestMode) {
-      showToast("テスト保存完了");
-      resetForm();
-      setIsSubmitting(false);
-      setIsSessionActive(false);
-      setLetterBadge(false);
-      return;
-    }
+    showToast("保存中...");
+    console.log("Submitting letter...");
 
     try {
+      const formattedThreeThings = (threeThings || []).map((t, i) => `${i + 1}. ${t}`).join("\n");
+      const formattedAnswers = (lastTroubleList || []).map((q, i) => `【Q${i+1}: ${q}】\nAns: ${(answers && answers[i]) || "（なし）"}`).join("\n\n");
+      const formattedTroubles = (thisWeekTroubles || []).map((t, i) => `${i + 1}. ${t}`).join("\n");
+
+      if (isTestMode) {
+        showToast("テスト保存完了");
+        resetForm();
+        setIsSubmitting(false);
+        setIsSessionActive(false);
+        setLetterBadge(false);
+        return;
+      }
+
       const res = await fetch("/api/letters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -91,9 +93,12 @@ export default function RoleLetteringPage() {
         fetchData();
         setIsSessionActive(false);
         setLetterBadge(false);
+      } else {
+        const errorData = await res.json();
+        showToast(`保存失敗: ${errorData.error || "サーバーエラー"}`);
       }
     } catch (error) {
-      showToast("エラーが発生しました");
+      showToast(`通信エラー: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }

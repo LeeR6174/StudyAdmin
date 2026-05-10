@@ -237,6 +237,29 @@ export default function PracticePage() {
                     }}
                   >役 B</button>
                 </div>
+                {inputText && messages.length > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{ 
+                      background: 'rgba(56, 189, 248, 0.1)', 
+                      border: '1px solid rgba(56, 189, 248, 0.2)',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      marginBottom: '8px',
+                      fontSize: '0.8rem',
+                      color: 'var(--accent-primary)',
+                      display: 'flex',
+                      gap: '8px',
+                      alignItems: 'flex-start'
+                    }}
+                  >
+                    <span style={{ fontWeight: 800, whiteSpace: 'nowrap' }}>役 {messages[messages.length-1].role}:</span>
+                    <span style={{ opacity: 0.9, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxDirection: 'vertical' }}>
+                      {messages[messages.length-1].text}
+                    </span>
+                  </motion.div>
+                )}
                 <form 
                   onSubmit={handleSendMessage} 
                   style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}
@@ -295,12 +318,20 @@ export default function PracticePage() {
               animate={{ opacity: 1, scale: 1 }}
               style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column' }}
             >
-              <div style={{ flex: 1, overflowY: 'auto', marginBottom: '24px' }} className="no-scrollbar">
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, marginBottom: '24px' }}>
                 <h3 className={styles.fieldLabel}>会話のサマリー</h3>
-                <div className="card" style={{ padding: '20px', fontSize: '0.9rem', background: 'rgba(0,0,0,0.15)' }}>
+                <div className="card no-scrollbar" style={{ 
+                  flex: 1, 
+                  overflowY: 'auto', 
+                  padding: '20px', 
+                  fontSize: '0.9rem', 
+                  background: 'rgba(0,0,0,0.15)',
+                  maxHeight: '40vh' 
+                }}>
                   {messages.map(m => (
-                    <div key={m.id} style={{ marginBottom: '10px', lineHeight: 1.5 }}>
-                      <span style={{ fontWeight: 800, color: m.role === 'A' ? 'var(--text-muted)' : 'var(--accent-primary)' }}>{m.role}:</span> {m.text}
+                    <div key={m.id} style={{ marginBottom: '12px', lineHeight: 1.5, display: 'flex', gap: '8px' }}>
+                      <span style={{ fontWeight: 800, color: m.role === 'A' ? 'var(--text-muted)' : 'var(--accent-primary)', minWidth: '24px' }}>{m.role}:</span>
+                      <span style={{ whiteSpace: 'pre-wrap' }}>{m.text}</span>
                     </div>
                   ))}
                 </div>

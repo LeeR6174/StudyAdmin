@@ -1,5 +1,6 @@
 .container {
   padding: 24px 16px;
+  padding-bottom: calc(var(--nav-height) + 40px);
   min-height: calc(100vh - var(--nav-height));
   display: flex;
   flex-direction: column;
@@ -61,6 +62,13 @@
   color: var(--text-main);
   font-size: 1rem;
   transition: var(--transition-normal);
+  min-height: 56px;
+}
+
+.input[type="datetime-local"] {
+  font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .input:focus {
