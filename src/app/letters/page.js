@@ -14,16 +14,21 @@ export default function RoleLetteringPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form State
-  const [answer, setAnswer] = useState("");
+  const [answers, setAnswers] = useState([""]); // Array for multiple replies
   const [threeThings, setThreeThings] = useState(["", "", ""]);
-  const [thisWeekTrouble, setThisWeekTrouble] = useState("");
+  const [thisWeekTroubles, setThisWeekTroubles] = useState([""]); // Start with 1, up to 6
   const [expandedId, setExpandedId] = useState(null);
   const [isSessionActive, setIsSessionActive] = useState(false);
+  const [lastTroubleList, setLastTroubleList] = useState([]);
 
   const fetchData = async () => {
     setIsLoading(true);
     if (isTestMode) {
-      setLastTrouble("テストモード: 先週のお悩みはここに表示されます。");
+      const mockTrouble = "1. 仕事の進め方\n2. 運動不足\n3. 早起きのコツ";
+      setLastTrouble(mockTrouble);
+      const list = mockTrouble.split(/\n?\d+\.\s+/).filter(Boolean);
+      setLastTroubleList(list);
+      setAnswers(new Array(list.length).fill(""));
       setHistory([
         { id: "1", date: new Date().toISOString(), answer: "解決しました！", threeThings: "1.運動 2.読書 3.早起き", thisWeekTrouble: "特になし" }
       ]);
@@ -34,7 +39,14 @@ export default function RoleLetteringPage() {
       const res = await fetch("/api/letters");
       if (res.ok) {
         const data = await res.json();
-        setLastTrouble(data.lastTrouble || "（初回です。自分へのメッセージを始めましょう）");
+        const rawTrouble = data.lastTrouble || "";
+        setLastTrouble(rawTrouble);
+        
+        // Split by "1. ", "2. ", etc.
+        const list = rawTrouble.split(/\n?\d+\.\s+/).filter(Boolean);
+        setLastTroubleList(list);
+        setAnswers(new Array(list.length).fill(""));
+        
         setHistory(data.items || []);
       }
     } catch (e) {
@@ -50,6 +62,10 @@ export default function RoleLetteringPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    const formattedThreeThings = threeThings.map((t, i) => `${i + 1}. ${t}`).join("\n");
+    const formattedAnswers = lastTroubleList.map((q, i) => `【Q${i+1}: ${q}】\nAns: ${answers[i] || "（なし）"}`).join("\n\n");
+    const formattedTroubles = thisWeekTroubles.map((t, i) => `${i + 1}. ${t}`).join("\n");
+
     if (isTestMode) {
       showToast("テスト保存完了");
       resetForm();
@@ -60,18 +76,21 @@ export default function RoleLetteringPage() {
     }
 
     try {
-      const formattedThreeThings = threeThings.map((t, i) => `${i + 1}. ${t}`).join("\n");
       const res = await fetch("/api/letters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answer, threeThings: formattedThreeThings, thisWeekTrouble }),
+        body: JSON.stringify({ 
+          answer: formattedAnswers, 
+          threeThings: formattedThreeThings, 
+          thisWeekTrouble: formattedTroubles 
+        }),
       });
       if (res.ok) {
         showToast("今週のレターを保存しました");
         resetForm();
         fetchData();
         setIsSessionActive(false);
-        setLetterBadge(false); // Clear badge on success
+        setLetterBadge(false);
       }
     } catch (error) {
       showToast("エラーが発生しました");
@@ -81,9 +100,9 @@ export default function RoleLetteringPage() {
   };
 
   const resetForm = () => {
-    setAnswer("");
+    setAnswers([""]);
     setThreeThings(["", "", ""]);
-    setThisWeekTrouble("");
+    setThisWeekTroubles([""]);
   };
 
   return (
@@ -160,28 +179,40 @@ export default function RoleLetteringPage() {
               <form onSubmit={handleSubmit} className="card" style={{ padding: '24px', marginBottom: '40px' }}>
                 <div className={styles.inputGroup}>
                   <label className={styles.fieldLabel} style={{ color: 'var(--accent-primary)' }}>先週の自分からの相談</label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ 
-                      background: 'rgba(56, 189, 248, 0.05)', 
-                      padding: '16px', 
-                      borderRadius: '4px 16px 16px 16px', 
-                      border: '1px solid rgba(56, 189, 248, 0.2)',
-                      fontSize: '0.9rem',
-                      lineHeight: 1.6,
-                      color: 'var(--text-muted)',
-                      position: 'relative'
-                    }}>
-                      {lastTrouble}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: '2px solid rgba(56, 189, 248, 0.1)' }}>
-                      <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-primary)', marginBottom: '4px' }}>今の自分からの返答</label>
-                      <textarea 
-                        value={answer} onChange={(e) => setAnswer(e.target.value)} 
-                        placeholder="相談への答えを書いてみよう..." className={styles.input}
-                        style={{ minHeight: '80px', resize: 'none', background: 'rgba(255,255,255,0.02)' }}
-                        autoFocus
-                      />
-                    </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    {lastTroubleList.length > 0 ? lastTroubleList.map((trouble, idx) => (
+                      <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ 
+                          background: 'rgba(56, 189, 248, 0.05)', 
+                          padding: '16px', 
+                          borderRadius: '4px 16px 16px 16px', 
+                          border: '1px solid rgba(56, 189, 248, 0.2)',
+                          fontSize: '0.9rem',
+                          lineHeight: 1.6,
+                          color: 'var(--text-muted)',
+                        }}>
+                          {idx + 1}. {trouble}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: '2px solid rgba(56, 189, 248, 0.1)' }}>
+                          <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-primary)', marginBottom: '4px' }}>返答 {idx + 1}</label>
+                          <textarea 
+                            value={answers[idx] || ""} 
+                            onChange={(e) => {
+                              const newAns = [...answers];
+                              newAns[idx] = e.target.value;
+                              setAnswers(newAns);
+                            }} 
+                            placeholder="この相談への答えを書いてみよう..." className={styles.input}
+                            style={{ minHeight: '80px', resize: 'none', background: 'rgba(255,255,255,0.02)' }}
+                            autoFocus={idx === 0}
+                          />
+                        </div>
+                      </div>
+                    )) : (
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontStyle: 'italic' }}>
+                        前回の相談はありませんでした。
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -207,12 +238,55 @@ export default function RoleLetteringPage() {
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label className={styles.fieldLabel}>今週のお悩み</label>
-                  <textarea 
-                    value={thisWeekTrouble} onChange={(e) => setThisWeekTrouble(e.target.value)} 
-                    placeholder="来週の自分に相談したいことは？" className={styles.input}
-                    style={{ minHeight: '100px', resize: 'none' }}
-                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label className={styles.fieldLabel} style={{ marginBottom: 0 }}>来週の自分への相談</label>
+                    {thisWeekTroubles.length < 6 && (
+                      <button 
+                        type="button" 
+                        onClick={() => setThisWeekTroubles([...thisWeekTroubles, ""])}
+                        style={{ 
+                          fontSize: '0.75rem', 
+                          color: 'var(--accent-primary)', 
+                          fontWeight: 800, 
+                          padding: '6px 12px', 
+                          borderRadius: '8px', 
+                          background: 'rgba(56, 189, 248, 0.08)', 
+                          border: '1px solid rgba(56, 189, 248, 0.2)',
+                          transition: 'all 0.2s',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        + 相談を追加
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {thisWeekTroubles.map((trouble, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <input 
+                          type="text"
+                          value={trouble}
+                          onChange={(e) => {
+                            const newT = [...thisWeekTroubles];
+                            newT[idx] = e.target.value;
+                            setThisWeekTroubles(newT);
+                          }}
+                          placeholder={`${idx + 1}. 来週の自分に相談したいこと`}
+                          className={styles.input}
+                          style={{ marginBottom: 0, flex: 1 }}
+                        />
+                        {thisWeekTroubles.length > 1 && (
+                          <button 
+                            type="button"
+                            onClick={() => setThisWeekTroubles(thisWeekTroubles.filter((_, i) => i !== idx))}
+                            style={{ color: 'var(--accent-danger)', background: 'transparent', border: 'none', padding: '8px' }}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px' }}>
