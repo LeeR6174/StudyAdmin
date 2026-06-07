@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquarePlus, Database, LayoutDashboard, Lightbulb, PenTool } from "lucide-react";
+import { Database, PenTool } from "lucide-react";
 import { motion } from "framer-motion";
 import styles from "./BottomNav.module.css";
 import { useAppContext } from "@/context/AppProvider";
@@ -12,10 +12,7 @@ export default function BottomNav() {
   const { inboxCount, letterBadge } = useAppContext();
 
   const navItems = [
-    { name: "追加", path: "/", icon: MessageSquarePlus },
-    { name: "Inbox", path: "/inbox", icon: Database, badge: inboxCount > 0 ? inboxCount : null },
-    { name: "Dialogue", path: "/practice", icon: LayoutDashboard },
-    { name: "思考", path: "/notes", icon: Lightbulb },
+    { name: "Inbox", path: "/", icon: Database, badge: inboxCount > 0 ? inboxCount : null },
     { name: "レター", path: "/letters", icon: PenTool, badge: letterBadge ? "!" : null },
   ];
 

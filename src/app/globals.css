@@ -1,34 +1,35 @@
 :root {
-  /* Colors - Cool & Gentle Palette */
-  --bg-main: #0f172a; /* Deep Slate */
-  --bg-surface: #1e293b; /* Slate 800 */
-  --bg-surface-hover: #334155; /* Slate 700 */
+  /* Colors - Bright & Calming Pastel Light Palette */
+  --bg-main: #f5f7fa; /* Soft bright off-white */
+  --bg-surface: rgba(255, 255, 255, 0.65); /* Elegant glass white */
+  --bg-surface-hover: rgba(255, 255, 255, 0.85); /* Hover glass white */
   
-  --text-main: #f8fafc; /* Slate 50 */
-  --text-muted: #94a3b8; /* Slate 400 */
+  --text-main: #272d3d; /* Soft dark slate for excellent readability */
+  --text-muted: #6b7280; /* Neutral grey */
   
-  /* Cool & Gentle Primaries */
-  --accent-primary: #38bdf8; /* Sky Blue 400 */
-  --accent-primary-gradient: linear-gradient(135deg, #38bdf8 0%, #2dd4bf 100%); /* Sky to Teal */
-  --accent-secondary: #818cf8; /* Soft Indigo */
-  --accent-danger: #f87171;
-  --accent-success: #34d399;
+  /* Bright & Gentle Pastel Accents (Calming pastel tones) */
+  --accent-primary: #6366f1; /* Soft Indigo */
+  --accent-primary-gradient: linear-gradient(135deg, #c7d2fe 0%, #a5f3fc 100%); /* Pastel Lavender to Pastel Ice-Blue */
+  --accent-secondary: #a78bfa; /* Pastel Violet / Purple */
+  --accent-danger: #fda4af; /* Pastel Rose */
+  --accent-success: #a7f3d0; /* Pastel Mint */
   
-  --border-color: rgba(255, 255, 255, 0.06);
-  --glass-bg: rgba(15, 23, 42, 0.8);
+  --border-color: rgba(99, 102, 241, 0.08); /* Soft indigo tint */
+  --glass-bg: rgba(255, 255, 255, 0.8);
   
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
-  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 4px 12px rgba(99, 102, 241, 0.03);
+  --shadow-md: 0 10px 30px rgba(99, 102, 241, 0.06);
+  --shadow-lg: 0 20px 40px rgba(99, 102, 241, 0.1);
+  --shadow-glass: 0 8px 32px 0 rgba(99, 102, 241, 0.05);
   
   --radius-md: 16px;
   --radius-lg: 24px;
+  --radius-xl: 28px;
   --radius-full: 9999px;
   
-  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --transition-normal: 0.45s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --transition-slow: 0.65s cubic-bezier(0.25, 0.8, 0.25, 1);
   
   --nav-height: 80px;
 }
@@ -47,8 +48,8 @@ body {
   overflow-x: hidden;
   background-color: var(--bg-main);
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(45, 212, 191, 0.08) 0%, transparent 50%);
+    radial-gradient(circle at 10% 20%, rgba(199, 210, 254, 0.45) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(165, 243, 252, 0.5) 0%, transparent 50%);
   background-attachment: fixed;
   color: var(--text-main);
   font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -77,7 +78,7 @@ input, textarea {
   font-family: inherit;
   outline: none;
   width: 100%;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.65);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 12px 16px;
@@ -89,9 +90,9 @@ input, textarea {
 
 input:focus, textarea:focus {
   outline: none;
-  border-color: var(--accent-primary);
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+  border-color: rgba(99, 102, 241, 0.35);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.08);
 }
 
 /* Premium Utilities */
@@ -99,29 +100,31 @@ input:focus, textarea:focus {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  padding: 20px;
+  padding: 24px;
   box-shadow: var(--shadow-sm);
   transition: var(--transition-normal);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .card:hover {
-  border-color: rgba(56, 189, 248, 0.3);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  border-color: rgba(99, 102, 241, 0.18);
+  box-shadow: var(--shadow-md);
+  background: var(--bg-surface-hover);
 }
 
 .glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-glass);
 }
 
 .glass-nav {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
   border-top: 1px solid var(--border-color);
 }
 

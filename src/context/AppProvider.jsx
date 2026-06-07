@@ -28,8 +28,8 @@ export function AppProvider({ children }) {
         if (data.items && data.items.length > 0) {
           const lastDate = new Date(data.items[0].date);
           const diffDays = (new Date() - lastDate) / (1000 * 60 * 60 * 24);
-          // If more than 6 days have passed, show a badge
-          setLetterBadge(diffDays > 6);
+          // If more than 13 days have passed, show a badge
+          setLetterBadge(diffDays > 13);
         } else {
           // If no history, show badge as a prompt to start
           setLetterBadge(true);
@@ -101,14 +101,14 @@ export function AppProvider({ children }) {
               bottom: "80px",
               left: "50%",
               zIndex: 9999,
-              background: "rgba(56, 189, 248, 0.95)",
-              color: "#0f172a",
+              background: "rgba(99, 102, 241, 0.95)",
+              color: "#ffffff",
               padding: "12px 24px",
               borderRadius: "var(--radius-full)",
               display: "flex",
               alignItems: "center",
               gap: "10px",
-              boxShadow: "0 8px 30px rgba(56, 189, 248, 0.3)",
+              boxShadow: "0 8px 30px rgba(99, 102, 241, 0.15)",
               fontWeight: 800,
               fontSize: "0.95rem",
               backdropFilter: "blur(8px)",

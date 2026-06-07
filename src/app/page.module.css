@@ -19,7 +19,7 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 4px;
-  filter: drop-shadow(0 2px 10px rgba(56, 189, 248, 0.15));
+  filter: drop-shadow(0 2px 10px rgba(99, 102, 241, 0.08));
   display: flex;
   align-items: center;
   gap: 10px;
@@ -73,15 +73,14 @@
 
 .input:focus {
   background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(56, 189, 248, 0.5);
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.05);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.04);
 }
 
-/* Buttons */
 .primaryBtn {
   width: 100%;
   background: var(--accent-primary-gradient);
-  color: #0f172a;
+  color: #ffffff;
   border-radius: var(--radius-md);
   padding: 16px;
   font-size: 1rem;
@@ -90,13 +89,13 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  box-shadow: 0 4px 20px rgba(56, 189, 248, 0.2);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
   transition: var(--transition-normal);
 }
 
 .primaryBtn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(56, 189, 248, 0.3);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.22);
   filter: brightness(1.05);
 }
 
@@ -188,7 +187,28 @@
 }
 
 .quickBtn:hover {
-  background: rgba(56, 189, 248, 0.1);
-  border-color: rgba(56, 189, 248, 0.3);
+  background: rgba(99, 102, 241, 0.06);
+  border-color: rgba(99, 102, 241, 0.15);
   color: var(--accent-primary);
+}
+
+.detailsToggle {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  transition: var(--transition-normal);
+}
+
+.detailsToggle[open] {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.detailsToggle summary {
+  list-style: none;
+  outline: none;
+}
+
+.detailsToggle summary::-webkit-details-marker {
+  display: none;
 }

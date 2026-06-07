@@ -88,7 +88,7 @@ export default function RoleLetteringPage() {
         }),
       });
       if (res.ok) {
-        showToast("今週のレターを保存しました");
+        showToast("Role Letteringを保存しました");
         resetForm();
         fetchData();
         setIsSessionActive(false);
@@ -115,7 +115,7 @@ export default function RoleLetteringPage() {
       <header className={styles.header} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <h1 className={styles.title}>Role Lettering <PenTool size={24} style={{ color: 'var(--accent-primary)' }} /></h1>
-          <p className={styles.subtitle}>自分への手紙で一週間を繋ぐ</p>
+          <p className={styles.subtitle}>毎週水曜日に実施（2週間に1回、自分へ手紙を送る）</p>
         </div>
         <button 
           onClick={() => {
@@ -123,7 +123,7 @@ export default function RoleLetteringPage() {
             showToast(letterBadge ? "通知バッジを非表示にしました" : "通知バッジを表示しました（テスト）");
           }}
           className={styles.iconBtn}
-          style={{ background: letterBadge ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)', color: letterBadge ? '#0f172a' : 'white' }}
+          style={{ background: letterBadge ? 'var(--accent-primary)' : 'var(--bg-surface)', color: letterBadge ? '#ffffff' : 'var(--text-main)' }}
         >
           <Sparkles size={20} />
         </button>
@@ -149,8 +149,8 @@ export default function RoleLetteringPage() {
                   flexDirection: 'column', 
                   alignItems: 'center', 
                   gap: '20px',
-                  background: 'rgba(56, 189, 248, 0.03)',
-                  border: letterBadge ? '1px solid var(--accent-primary)' : '1px solid rgba(56, 189, 248, 0.1)',
+                  background: 'rgba(99, 102, 241, 0.02)',
+                  border: letterBadge ? '1px solid var(--accent-primary)' : '1px solid rgba(99, 102, 241, 0.1)',
                   cursor: 'pointer',
                   position: 'relative'
                 }}
@@ -164,13 +164,13 @@ export default function RoleLetteringPage() {
                   width: '64px', height: '64px', borderRadius: '50%', 
                   background: 'var(--accent-primary-gradient)', 
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 8px 25px rgba(56, 189, 248, 0.3)'
+                  boxShadow: '0 8px 25px rgba(99, 102, 241, 0.15)'
                 }}>
-                  <PenTool size={32} color="#0f172a" />
+                  <PenTool size={32} color="#ffffff" />
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '8px' }}>週次レターを開始する</h3>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>自分自身と向き合い、一週間を繋ぎましょう</p>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '8px' }}>Role Letteringを開始する</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>自分自身と向き合い、次の自分へ想いを繋ぎましょう</p>
                 </div>
               </button>
             </motion.div>
@@ -183,22 +183,22 @@ export default function RoleLetteringPage() {
             >
               <form onSubmit={handleSubmit} className="card" style={{ padding: '24px', marginBottom: '40px' }}>
                 <div className={styles.inputGroup}>
-                  <label className={styles.fieldLabel} style={{ color: 'var(--accent-primary)' }}>先週の自分からの相談</label>
+                  <label className={styles.fieldLabel} style={{ color: 'var(--accent-primary)' }}>前回の自分からの相談</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {lastTroubleList.length > 0 ? lastTroubleList.map((trouble, idx) => (
                       <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ 
-                          background: 'rgba(56, 189, 248, 0.05)', 
+                          background: 'rgba(99, 102, 241, 0.04)', 
                           padding: '16px', 
                           borderRadius: '4px 16px 16px 16px', 
-                          border: '1px solid rgba(56, 189, 248, 0.2)',
+                          border: '1px solid rgba(99, 102, 241, 0.12)',
                           fontSize: '0.9rem',
                           lineHeight: 1.6,
                           color: 'var(--text-muted)',
                         }}>
                           {idx + 1}. {trouble}
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: '2px solid rgba(56, 189, 248, 0.1)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: '2px solid rgba(99, 102, 241, 0.08)' }}>
                           <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--accent-primary)', marginBottom: '4px' }}>返答 {idx + 1}</label>
                           <textarea 
                             value={answers[idx] || ""} 
@@ -208,7 +208,7 @@ export default function RoleLetteringPage() {
                               setAnswers(newAns);
                             }} 
                             placeholder="この相談への答えを書いてみよう..." className={styles.input}
-                            style={{ minHeight: '80px', resize: 'none', background: 'rgba(255,255,255,0.02)' }}
+                            style={{ minHeight: '80px', resize: 'none', background: 'rgba(255,255,255,0.7)' }}
                             autoFocus={idx === 0}
                           />
                         </div>
@@ -222,7 +222,7 @@ export default function RoleLetteringPage() {
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label className={styles.fieldLabel}>今週あった3つのこと</label>
+                  <label className={styles.fieldLabel}>この2週間にあった3つのこと</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {threeThings.map((thing, idx) => (
                       <input 
@@ -244,7 +244,7 @@ export default function RoleLetteringPage() {
 
                 <div className={styles.inputGroup}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <label className={styles.fieldLabel} style={{ marginBottom: 0 }}>来週の自分への相談</label>
+                    <label className={styles.fieldLabel} style={{ marginBottom: 0 }}>次回の自分への相談</label>
                     {thisWeekTroubles.length < 6 && (
                       <button 
                         type="button" 
@@ -255,8 +255,8 @@ export default function RoleLetteringPage() {
                           fontWeight: 800, 
                           padding: '6px 12px', 
                           borderRadius: '8px', 
-                          background: 'rgba(56, 189, 248, 0.08)', 
-                          border: '1px solid rgba(56, 189, 248, 0.2)',
+                          background: 'rgba(99, 102, 241, 0.05)', 
+                          border: '1px solid rgba(99, 102, 241, 0.12)',
                           transition: 'all 0.2s',
                           cursor: 'pointer'
                         }}
@@ -276,7 +276,7 @@ export default function RoleLetteringPage() {
                             newT[idx] = e.target.value;
                             setThisWeekTroubles(newT);
                           }}
-                          placeholder={`${idx + 1}. 来週の自分に相談したいこと`}
+                          placeholder={`${idx + 1}. 次回の自分に相談したいこと`}
                           className={styles.input}
                           style={{ marginBottom: 0, flex: 1 }}
                         />
@@ -350,11 +350,11 @@ export default function RoleLetteringPage() {
                           <p style={{ fontSize: '0.95rem', marginTop: '4px', lineHeight: 1.6 }}>{item.answer || "（空欄）"}</p>
                         </div>
                         <div>
-                          <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-primary)', textTransform: 'uppercase' }}>今週の3つ</label>
+                          <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-primary)', textTransform: 'uppercase' }}>この2週間の3つ</label>
                           <p style={{ fontSize: '0.95rem', marginTop: '4px', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{item.threeThings || "（空欄）"}</p>
                         </div>
                         <div>
-                          <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-primary)', textTransform: 'uppercase' }}>今週のお悩み</label>
+                          <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-primary)', textTransform: 'uppercase' }}>次回への相談</label>
                           <p style={{ fontSize: '0.95rem', marginTop: '4px', lineHeight: 1.6 }}>{item.thisWeekTrouble || "（空欄）"}</p>
                         </div>
                       </div>
