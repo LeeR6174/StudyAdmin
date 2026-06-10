@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { Client } from "@notionhq/client";
+import { getNotionClient, resolveDataSourceId } from "@/lib/notion";
 
 export const dynamic = "force-dynamic";
 
-const getNotionClient = () => new Client({ auth: process.env.NOTION_API_KEY });
 const databaseId = process.env.NOTION_ROLE_LETTERING_DB_ID;
 
 export async function GET() {
@@ -13,10 +12,11 @@ export async function GET() {
 
   try {
     const notion = getNotionClient();
+    const dataSourceId = await resolveDataSourceId(notion, databaseId, "NOTION_ROLE_LETTERING_DATA_SOURCE_ID");
     
     // Get the most recent entry to find "Last Week's Trouble"
-    const response = await notion.databases.query({
-      database_id: databaseId,
+    const response = await notion.dataSources.query({
+      data_source_id: dataSourceId,
       sorts: [{ timestamp: "created_time", direction: "descending" }],
       page_size: 100,
     });
@@ -46,6 +46,7 @@ export async function POST(request) {
 
   try {
     const notion = getNotionClient();
+    const dataSourceId = await resolveDataSourceId(notion, databaseId, "NOTION_ROLE_LETTERING_DATA_SOURCE_ID");
     const { answer, threeThings, thisWeekTrouble } = await request.json();
 
     const properties = {
@@ -56,7 +57,7 @@ export async function POST(request) {
     };
 
     await notion.pages.create({
-      parent: { database_id: databaseId },
+      parent: { type: "data_source_id", data_source_id: dataSourceId },
       properties,
     });
 
@@ -66,3 +67,4 @@ export async function POST(request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
-import { Client } from "@notionhq/client";
+import { getNotionClient, resolveDataSourceId } from "@/lib/notion";
 
 export const dynamic = "force-dynamic";
 
-// Initialize Notion Client helper
-const getNotionClient = () => new Client({ auth: process.env.NOTION_API_KEY });
 const databaseId = process.env.NOTION_INBOX_DB_ID;
 
 export async function GET() {
@@ -14,13 +12,14 @@ export async function GET() {
 
   try {
     const notion = getNotionClient();
+    const dataSourceId = await resolveDataSourceId(notion, databaseId, "NOTION_INBOX_DATA_SOURCE_ID");
     let allResults = [];
     let hasMore = true;
     let cursor = undefined;
 
     while (hasMore) {
-      const response = await notion.databases.query({
-        database_id: databaseId,
+      const response = await notion.dataSources.query({
+        data_source_id: dataSourceId,
         sorts: [{ timestamp: "created_time", direction: "ascending" }],
         start_cursor: cursor,
       });
@@ -53,6 +52,7 @@ export async function POST(request) {
 
   try {
     const notion = getNotionClient();
+    const dataSourceId = await resolveDataSourceId(notion, databaseId, "NOTION_INBOX_DATA_SOURCE_ID");
     const { name, memo, deadline, location } = await request.json();
 
     const properties = {
@@ -73,7 +73,7 @@ export async function POST(request) {
     }
 
     const response = await notion.pages.create({
-      parent: { database_id: databaseId },
+      parent: { type: "data_source_id", data_source_id: dataSourceId },
       properties,
     });
 
@@ -109,3 +109,4 @@ export async function PATCH(request) {
     return NextResponse.json({ error: error.message || "Failed to update entry" }, { status: 500 });
   }
 }
+
